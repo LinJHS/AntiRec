@@ -1,15 +1,11 @@
 <script setup>
+import { RouterView } from 'vue-router';
+
 </script>
 
 <template>
-  <div class="container">
-    <h1>Welcome to Tauri!</h1>
-
-  </div>
+  <RouterView />
 </template>
 
 <style scoped>
-h1 {
-  text-align: center;
-}
 </style>
