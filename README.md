@@ -3,12 +3,13 @@
   
   # 🎧 AntiRec 
   
-  <img src="https://github.com/LinJHS/AntiRec/blob/main/images/logo.png" alt="AntiRec Logo" width="200">
-  
-  [![GitHub stars](https://img.shields.io/github/stars/LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/stargazers)
-  [![GitHub forks](https://img.shields.io/github/forks/LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/network/members)
-  [![GitHub issues](https://img.shields.io/github/issues/LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/issues)
-  [![GitHub license](https://img.shields.io/github/license/LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/blob/main/LICENSE)
+  <!-- <img src="https://github.com/LinJHS/AntiRec/blob/main/images/logo.png" alt="AntiRec Logo" width="200"> -->
+  [![GitHub Forks](https://img.shields.io/github/forks/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/network)
+  [![GitHub Issues](https://img.shields.io/github/issues/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/issues)
+  [![GitHub Contributors](https://img.shields.io/github/contributors/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/graphs/contributors)<!--
+   [![GitHub All Releases](https://img.shields.io/github/downloads/LinJHS/AntiRec/total?style=flat-square)](https://github.com/LinJHS/AntiRec/releases)
+  ![GitHub Release (latest SemVer)](https://img.shields.io/github/v/release/LinJHS/AntiRec?style=flat-square) -->
+  [![GitHub License](https://img.shields.io/github/license/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/blob/main/LICENSE)
 </div>
 
   **AntiRec** is a cross-platform client application designed for real-time audio capture, processing, and playback. Built on the modern [Tauri](https://tauri.app/) framework, it offers a seamless experience across multiple operating systems with efficient audio handling capabilities. 🚀
@@ -20,14 +21,6 @@
 - **Low Resource Consumption**: Optimized for lightweight performance with Tauri.
 - **Efficient Processing**: Fast, real-time audio processing pipeline.
 - **Custom Playback Options**: Flexible playback configurations for different use cases.
-
-## 🚀 Getting Started
-
-Follow these steps to get the app up and running on your system.
-
-### Prerequisites
-- [Node.js](https://nodejs.org/) v14 or higher
-- [Tauri](https://tauri.app/) (install using the official guide)
 
 ## 🚀 Getting Started
 
