@@ -1,5 +1,5 @@
 
-<center>
+<div align="center">
   
   # 🎧 AntiRec 
   
@@ -9,7 +9,7 @@
   [![GitHub forks](https://img.shields.io/github/forks/LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/network/members)
   [![GitHub issues](https://img.shields.io/github/issues/LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/issues)
   [![GitHub license](https://img.shields.io/github/license/LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/blob/main/LICENSE)
-</center>
+</div>
 
   **AntiRec** is a cross-platform client application designed for real-time audio capture, processing, and playback. Built on the modern [Tauri](https://tauri.app/) framework, it offers a seamless experience across multiple operating systems with efficient audio handling capabilities. 🚀
 
