@@ -4,6 +4,7 @@
   # 🎧 AntiRec 
   
   <!-- <img src="https://github.com/LinJHS/AntiRec/blob/main/images/logo.png" alt="AntiRec Logo" width="200"> -->
+  [![GitHub Stars](https://img.shields.io/github/stars/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/stargazers)
   [![GitHub Forks](https://img.shields.io/github/forks/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/network)
   [![GitHub Issues](https://img.shields.io/github/issues/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/issues)
   [![GitHub Contributors](https://img.shields.io/github/contributors/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/graphs/contributors)<!--
