@@ -3,7 +3,7 @@
   
   # 🎧 AntiRec 
   
-  ![AntiRec Logo](https://github.com/LinJHS/AntiRec/blob/main/images/logo.png)
+  <img src="https://github.com/LinJHS/AntiRec/blob/main/images/logo.png" alt="AntiRec Logo" width="200">
   
   [![GitHub stars](https://img.shields.io/github/stars/LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/stargazers)
   [![GitHub forks](https://img.shields.io/github/forks/LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/network/members)
