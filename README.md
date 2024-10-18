@@ -1,10 +1,17 @@
-# 🎧 AntiRec 
 
-<!-- ![AntiRec Logo]() -->
+<center>
+  
+  # 🎧 AntiRec 
+  
+  ![AntiRec Logo](https://github.com/LinJHS/AntiRec/blob/main/images/logo.png)
+  
+  [![GitHub stars](https://img.shields.io/github/stars/LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/stargazers)
+  [![GitHub forks](https://img.shields.io/github/forks/LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/network/members)
+  [![GitHub issues](https://img.shields.io/github/issues/LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/issues)
+  [![GitHub license](https://img.shields.io/github/license/LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/blob/main/LICENSE)
+</center>
 
-**AntiRec** is a cross-platform client application designed for real-time audio capture, processing, and playback. Built on the modern [Tauri](https://tauri.app/) framework, it offers a seamless experience across multiple operating systems with efficient audio handling capabilities. 🚀
-
----
+  **AntiRec** is a cross-platform client application designed for real-time audio capture, processing, and playback. Built on the modern [Tauri](https://tauri.app/) framework, it offers a seamless experience across multiple operating systems with efficient audio handling capabilities. 🚀
 
 ## ✨ Features
 
@@ -13,8 +20,6 @@
 - **Low Resource Consumption**: Optimized for lightweight performance with Tauri.
 - **Efficient Processing**: Fast, real-time audio processing pipeline.
 - **Custom Playback Options**: Flexible playback configurations for different use cases.
-
----
 
 ## 🚀 Getting Started
 
@@ -51,8 +56,6 @@ Follow these steps to get the app up and running on your system.
    pnpm tauri dev
    ```
 <!-- 
----
-
 ## 📷 Screenshots
 
 ![AntiRec Screenshot 1](https://your-image-link.com/screenshot1.png)
@@ -60,8 +63,6 @@ Follow these steps to get the app up and running on your system.
 
 ![AntiRec Screenshot 2](https://your-image-link.com/screenshot2.png)
 *Real-time audio processing view* -->
-
----
 
 ## 🛠️ Technologies
 
@@ -71,8 +72,6 @@ AntiRec leverages a robust stack of modern technologies:
 - **[Vue.js](https://vuejs.org/)** - Front-end framework for user interfaces.
 - **[Rust](https://www.rust-lang.org/)** - Powerful systems programming language for performance-critical tasks.
 - **JavaScript** - For seamless interaction with the UI components.
-
----
 
 ## 🤝 Contributing
 
@@ -84,19 +83,13 @@ We welcome contributions! Here’s how you can get involved:
 4. Push to the branch (`git push origin feature/my-feature`).
 5. Open a pull request.
 
----
-
 ## 📜 License
 
 This project is licensed under the GPL-3.0 License - see the [LICENSE](https://github.com/LinJHS/AntiRec/blob/main/LICENSE) file for details.
 
----
-
 ## 🌟 Show Your Support
 
 If you like the project, give it a star 🌟 on [GitHub](https://github.com/LinJHS/AntiRec)! 
-
----
 
 ## 📫 Contact
 
@@ -104,3 +97,9 @@ Have questions or want to reach out? Feel free to contact us at:
 
 - GitHub Issues: [Create a New Issue](https://github.com/LinJHS/AntiRec/issues)
 - Email: LinJHS@bupt.edu.cn
+
+## ✨ Contributors
+
+Thanks goes to these wonderful people:
+
+[![Contributors](https://contrib.rocks/image?repo=LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/graphs/contributors)
