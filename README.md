@@ -1,3 +1,106 @@
-# AntiRec
+# 🎧 AntiRec 
 
-A cross-platform client application designed for real-time audio capture, processing, and playback. Built using the Tauri framework, AntiRec provides a seamless experience across different operating systems, enabling efficient and portable audio handling capabilities.
+<!-- ![AntiRec Logo]() -->
+
+**AntiRec** is a cross-platform client application designed for real-time audio capture, processing, and playback. Built on the modern [Tauri](https://tauri.app/) framework, it offers a seamless experience across multiple operating systems with efficient audio handling capabilities. 🚀
+
+---
+
+## ✨ Features
+
+- **Real-time Audio Capture**: Capture audio seamlessly from any input device.
+- **Cross-Platform Compatibility**: Works smoothly on Windows, macOS, and Linux.
+- **Low Resource Consumption**: Optimized for lightweight performance with Tauri.
+- **Efficient Processing**: Fast, real-time audio processing pipeline.
+- **Custom Playback Options**: Flexible playback configurations for different use cases.
+
+---
+
+## 🚀 Getting Started
+
+Follow these steps to get the app up and running on your system.
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) v14 or higher
+- [Tauri](https://tauri.app/) (install using the official guide)
+
+## 🚀 Getting Started
+
+Follow these steps to get the app up and running on your system.
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) v14 or higher
+- [Tauri](https://tauri.app/) (install using the official guide)
+- [pnpm](https://pnpm.io/) (a fast, disk space-efficient package manager)
+- A valid audio input device (microphone)
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/LinJHS/AntiRec.git
+   cd AntiRec
+   ```
+
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+
+3. Build and run the application:
+   ```bash
+   pnpm tauri dev
+   ```
+<!-- 
+---
+
+## 📷 Screenshots
+
+![AntiRec Screenshot 1](https://your-image-link.com/screenshot1.png)
+*Main interface of AntiRec on Windows*
+
+![AntiRec Screenshot 2](https://your-image-link.com/screenshot2.png)
+*Real-time audio processing view* -->
+
+---
+
+## 🛠️ Technologies
+
+AntiRec leverages a robust stack of modern technologies:
+
+- **[Tauri](https://tauri.app/)** - The cross-platform app development framework.
+- **[Vue.js](https://vuejs.org/)** - Front-end framework for user interfaces.
+- **[Rust](https://www.rust-lang.org/)** - Powerful systems programming language for performance-critical tasks.
+- **JavaScript** - For seamless interaction with the UI components.
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Here’s how you can get involved:
+
+1. Fork the repository.
+2. Create your feature branch (`git checkout -b feature/my-feature`).
+3. Commit your changes (`git commit -m 'Add some feature'`).
+4. Push to the branch (`git push origin feature/my-feature`).
+5. Open a pull request.
+
+---
+
+## 📜 License
+
+This project is licensed under the GPL-3.0 License - see the [LICENSE](https://github.com/LinJHS/AntiRec/blob/main/LICENSE) file for details.
+
+---
+
+## 🌟 Show Your Support
+
+If you like the project, give it a star 🌟 on [GitHub](https://github.com/LinJHS/AntiRec)! 
+
+---
+
+## 📫 Contact
+
+Have questions or want to reach out? Feel free to contact us at:
+
+- GitHub Issues: [Create a New Issue](https://github.com/LinJHS/AntiRec/issues)
+- Email: LinJHS@bupt.edu.cn
