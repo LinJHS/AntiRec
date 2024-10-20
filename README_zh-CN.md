@@ -78,10 +78,10 @@ AntiRec 利用了强大而现代的技术堆栈：
 我们欢迎贡献！以下是您如何参与的方法：
 
 1. fork 该仓库。
-2. 创建您的特性分支 (`git checkout -b feature/my-feature`)。
+2. 创建您的 feature 分支 (`git checkout -b feature/my-feature`)。
 3. 提交更改 (`git commit -m 'Add some feature'`)。
 4. 推送到分支 (`git push origin feature/my-feature`)。
-5. 提交拉取请求。
+5. 提交 pull request。
 
 ## 📜 许可证
 
@@ -95,11 +95,11 @@ AntiRec 利用了强大而现代的技术堆栈：
 
 有任何疑问或想要联系我们？请随时联系我们：
 
-- GitHub 问题：[创建新问题](https://github.com/LinJHS/AntiRec/issues)
+- GitHub 问题：[创建新 Issue](https://github.com/LinJHS/AntiRec/issues)
 - 邮件：LinJHS@bupt.edu.cn
 
 ## ✨ 贡献者
 
-感谢这些优秀的人们：
+感谢以下的贡献者们！
 
-[[贡献者](https://contrib.rocks/image?repo=LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=LinJHS/AntiRec)](https://github.com/LinJHS/AntiRec/graphs/contributors)
