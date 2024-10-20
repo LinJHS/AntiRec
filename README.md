@@ -3,8 +3,8 @@
   
   <!-- # 🎧 AntiRec  -->
   
-  <img src="https://github.com/LinJHS/AntiRec/blob/main/images/logo.png" alt="AntiRec Logo" width="200">
-  
+  <img src="https://github.com/LinJHS/AntiRec/blob/main/images/logo.png" alt="AntiRec Logo" width="500">
+
   [![GitHub Stars](https://img.shields.io/github/stars/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/stargazers)
   [![GitHub Forks](https://img.shields.io/github/forks/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/network)
   [![GitHub Issues](https://img.shields.io/github/issues/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/issues)
@@ -12,9 +12,14 @@
    [![GitHub All Releases](https://img.shields.io/github/downloads/LinJHS/AntiRec/total?style=flat-square)](https://github.com/LinJHS/AntiRec/releases)
   ![GitHub Release (latest SemVer)](https://img.shields.io/github/v/release/LinJHS/AntiRec?style=flat-square) -->
   [![GitHub License](https://img.shields.io/github/license/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/blob/main/LICENSE)
+
+  
+  [English](https://github.com/LinJHS/AntiRec/blob/main/README.md) | [简体中文](https://github.com/LinJHS/AntiRec/blob/main/README_zh-CN.md)
 </div>
 
   **AntiRec** is a cross-platform client application designed for real-time audio capture, processing, and playback. Built on the modern [Tauri](https://tauri.app/) framework, it offers a seamless experience across multiple operating systems with efficient audio handling capabilities. 🚀
+
+  Leveraging its robust audio processing capabilities, AntiRec provides advanced privacy protection by introducing a controlled perturbation to the audio input from the microphone.  This feature is designed to obfuscate the original sound content, thereby thwarting potential eavesdropping attempts and ensuring that private communications remain confidential.  With these functionalities, AntiRec aims to provide users with a secure environment for their real-time audio interactions while maintaining the integrity and usability of the captured audio.
 
 ## ✨ Features
 
