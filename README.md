@@ -19,7 +19,7 @@
 
   **AntiRec** is a cross-platform client application designed for real-time audio capture, processing, and playback. Built on the modern [Tauri](https://tauri.app/) framework, it offers a seamless experience across multiple operating systems with efficient audio handling capabilities. 🚀
 
-  Leveraging its robust audio processing capabilities, AntiRec provides advanced privacy protection by introducing a controlled perturbation to the audio input from the microphone.  This feature is designed to obfuscate the original sound content, thereby thwarting potential eavesdropping attempts and ensuring that private communications remain confidential.  With these functionalities, AntiRec aims to provide users with a secure environment for their real-time audio interactions while maintaining the integrity and usability of the captured audio.
+  Leveraging its powerful audio processing capabilities, AntiRec introduces a controlled perturbation into the microphone input to provide advanced privacy protection. This feature is designed to prevent automatic speech recognition (ASR) systems from recognizing the content, without affecting normal communication, thus thwarting potential eavesdropping attempts and ensuring that private communications remain confidential. With these functionalities, AntiRec aims to provide users with a secure environment for real-time audio interactions while maintaining the integrity and usability of the captured audio.
 
 ## ✨ Features
 
