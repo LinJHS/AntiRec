@@ -4,13 +4,13 @@
   
   <img src="https://github.com/LinJHS/AntiRec/blob/main/images/logo.png" alt="AntiRec Logo" width="500">
 
-  [[GitHub 星标](https://img.shields.io/github/stars/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/stargazers)
-  [[GitHub 分支](https://img.shields.io/github/forks/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/network)
-  [[GitHub 问题](https://img.shields.io/github/issues/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/issues)
-  [[GitHub 贡献者](https://img.shields.io/github/contributors/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/graphs/contributors)<!--
-   [[GitHub 所有发布版本](https://img.shields.io/github/downloads/LinJHS/AntiRec/total?style=flat-square)](https://github.com/LinJHS/AntiRec/releases)
-  [GitHub 发布版本 (最新 SemVer)](https://img.shields.io/github/v/release/LinJHS/AntiRec?style=flat-square) -->
-  [[GitHub 许可证](https://img.shields.io/github/license/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/blob/main/LICENSE)
+  [![GitHub Stars](https://img.shields.io/github/stars/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/stargazers)
+  [![GitHub Forks](https://img.shields.io/github/forks/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/network)
+  [![GitHub Issues](https://img.shields.io/github/issues/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/issues)
+  [![GitHub Contributors](https://img.shields.io/github/contributors/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/graphs/contributors)<!--
+   [![GitHub All Releases](https://img.shields.io/github/downloads/LinJHS/AntiRec/total?style=flat-square)](https://github.com/LinJHS/AntiRec/releases)
+  ![GitHub Release (latest SemVer)](https://img.shields.io/github/v/release/LinJHS/AntiRec?style=flat-square) -->
+  [![GitHub License](https://img.shields.io/github/license/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/blob/main/LICENSE)
 
   
   [English](https://github.com/LinJHS/AntiRec/blob/main/README.md) | [简体中文](https://github.com/LinJHS/AntiRec/blob/main/README_zh-CN.md)
