@@ -28,6 +28,11 @@ const routes = [
         name: "async",
         component: () => import("../views/AsyncView.vue"),
       },
+      {
+        path: "/config",
+        name: "config",
+        component: () => import("../views/ConfigView.vue"),
+      },
     ],
   },
   {
