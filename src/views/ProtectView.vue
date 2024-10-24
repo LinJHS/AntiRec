@@ -11,6 +11,35 @@ const uapDetected = ref(false)
 
 // 启动防护
 const startProtect = async () => {
+  if (!await exists('uap', { dir: BaseDirectory.AppData })) {
+    // 不存在指定文件夹则创建
+    uapDetected.value = false
+    console.log('create dir')
+    await createDir('uap', { dir: BaseDirectory.AppData, recursive: true });
+  } else if (!await exists('uap/uap.ar', { dir: BaseDirectory.AppData })) {
+    // 未找到 UAP
+    uapDetected.value = false
+  } else {
+    // 找到 UAP 则加载
+    uapDetected.value = true
+    const uapFileData = await readTextFile('uap/uap.ar', { dir: BaseDirectory.AppData })
+    const lines = uapFileData.trim().split('\n');
+
+    // 转换每一行为浮点数并添加到数组中
+    const floatArray = lines.map(line => {
+      const num = parseFloat(line);
+      // 确保转换成功且不是一个NaN值
+      if (!isNaN(num)) {
+        return num;
+      } else {
+        console.warn(`"${line}" 无法转换为浮点数.`);
+        return null;
+      }
+    }).filter(num => num !== null); // 过滤掉转换失败的项
+
+    // 启动音频防护
+    invoke('audio_process', { addValues: floatArray.slice(0, 17000) });
+  }
 }
 
 var listenFromBackend
@@ -19,11 +48,29 @@ const canvasNewRef = ref()
 
 // 绘制波形
 const drawWave = async (data, canvasRef) => {
+  const context = canvasRef.value.getContext('2d');
+  const width = canvasRef.value.width;
+  const height = canvasRef.value.height;
+  const step = data.length / width;
+  context.strokeStyle = '#CDF1F6';
+  context.clearRect(0, 0, width, height);
+  context.beginPath();
+  context.moveTo(0, height / 2);
+  for (let i = 0; i < width; i++) {
+    const sample = data[Math.ceil(i * step)];
+    const y = (sample) * (height / 2) + (height / 2);
+    context.lineTo(i, y);
+  }
+  context.stroke();
 
 }
 
 // 初始化监听，获得后端返回的结果
 const initListen = async () => {
+  listenFromBackend = await listen('audio_update', (event) => {
+    drawWave(event.payload.ori, canvasOriRef)
+    drawWave(event.payload.new, canvasNewRef)
+  });
 }
 
 onMounted(() => {
