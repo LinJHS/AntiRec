@@ -13,9 +13,11 @@
     "@tauri-apps/api": "^1",
     "anti-rec": "file:",
     "axios": "^1.7.7",
+    "crypto-js": "^4.2.0",
     "pinia": "^2.2.2",
     "vue": "^3.3.4",
-    "vue-router": "4"
+    "vue-router": "4",
+    "wavesurfer.js": "^7.8.8"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1",
