@@ -7,19 +7,30 @@
   },
   "package": {
     "productName": "anti-rec",
-    "version": "0.1.0"
+    "version": "0.0.0"
   },
   "tauri": {
     "allowlist": {
       "all": false,
       "shell": {
+        "all": false
+      },
+      "fs": {
         "all": false,
-        "open": true
+        "scope": ["$APPDATA/**"],
+        "readFile": true,
+        "writeFile": true,
+        "readDir": true,
+        "createDir": true,
+        "exists": true
+      },
+      "path": {
+        "all": true
       }
     },
     "windows": [
       {
-        "title": "anti-rec",
+        "title": "Anti Rec",
         "width": 800,
         "height": 600
       }
