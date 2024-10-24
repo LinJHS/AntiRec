@@ -3,7 +3,7 @@ name = "anti-rec"
 version = "1.0.0"
 description = "A app that prevents users from being eavesdropped"
 authors = ["LinJHS"]
-edition = "2024"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,7 +11,7 @@ edition = "2024"
 tauri-build = { version = "1", features = [] }
 
 [dependencies]
-tauri = { version = "1", features = [ "fs-write-file", "path-all", "fs-read-dir", "fs-exists", "fs-read-file", "fs-create-dir"] }
+tauri = { version = "1", features = [ "shell-open"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 cpal = "0.15.3"
