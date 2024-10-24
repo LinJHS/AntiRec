@@ -3,9 +3,9 @@ import { onMounted, ref } from 'vue';
 import router from '../router'
 import WaveSurfer from 'wavesurfer.js'
 import { exists, readDir, createDir, BaseDirectory, readBinaryFile, readTextFile, writeTextFile } from '@tauri-apps/api/fs';
-
 import CryptoJS from 'crypto-js';
 import { waveDecoder, waveEncoder } from '../utils/wave';
+import config from '../config/config.json';
 
 // 调用接口获得 ASR 结果
 const xfIAT = async (waveFilepath, resultFilepath, resultDisplay) => {
@@ -14,16 +14,14 @@ const xfIAT = async (waveFilepath, resultFilepath, resultDisplay) => {
   resultDisplay.value = ''
 
   // 系统配置 
-  const config = {
+  const xfConfig = {
     // 请求地址
     hostUrl: "wss://iat-api.xfyun.cn/v2/iat",
     host: "iat-api.xfyun.cn",
-    //在控制台-我的应用-语音听写（流式版）获取
-    appid: "",
-    //在控制台-我的应用-语音听写（流式版）获取
-    apiSecret: "",
-    //在控制台-我的应用-语音听写（流式版）获取
-    apiKey: "",
+    //从配置文件中获取
+    appid: config.xfyun.appid,
+    apiSecret: config.xfyun.apiSecret,
+    apiKey: config.xfyun.apiKey,
     uri: "/v2/iat",
     highWaterMark: 1280
   }
@@ -44,7 +42,7 @@ const xfIAT = async (waveFilepath, resultFilepath, resultDisplay) => {
   // 识别结果
   let iatResult = []
 
-  let wssUrl = config.hostUrl + "?authorization=" + getAuthStr(date) + "&date=" + date + "&host=" + config.host
+  let wssUrl = xfConfig.hostUrl + "?authorization=" + getAuthStr(date) + "&date=" + date + "&host=" + xfConfig.host
   let ws = new WebSocket(wssUrl)
 
   // 连接建立完毕，读取数据进行识别
@@ -138,7 +136,7 @@ const xfIAT = async (waveFilepath, resultFilepath, resultDisplay) => {
       })
 
       let offset = 0;
-      const chunkSize = config.highWaterMark;
+      const chunkSize = xfConfig.highWaterMark;
       // console.log(monoData.buffer.byteLength)
       while (offset < newWaveFile.byteLength) {
         const chunk = newWaveFile.slice(offset, offset + chunkSize);
@@ -155,10 +153,10 @@ const xfIAT = async (waveFilepath, resultFilepath, resultDisplay) => {
 
   // 鉴权签名
   function getAuthStr(date) {
-    let signatureOrigin = `host: ${config.host}\ndate: ${date}\nGET ${config.uri} HTTP/1.1`
-    let signatureSha = CryptoJS.HmacSHA256(signatureOrigin, config.apiSecret)
+    let signatureOrigin = `host: ${xfConfig.host}\ndate: ${date}\nGET ${xfConfig.uri} HTTP/1.1`
+    let signatureSha = CryptoJS.HmacSHA256(signatureOrigin, xfConfig.apiSecret)
     let signature = CryptoJS.enc.Base64.stringify(signatureSha)
-    let authorizationOrigin = `api_key="${config.apiKey}", algorithm="hmac-sha256", headers="host date request-line", signature="${signature}"`
+    let authorizationOrigin = `api_key="${xfConfig.apiKey}", algorithm="hmac-sha256", headers="host date request-line", signature="${signature}"`
     let authStr = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(authorizationOrigin))
     return authStr
   }
@@ -187,7 +185,7 @@ const xfIAT = async (waveFilepath, resultFilepath, resultDisplay) => {
         frame = {
           // 填充common
           common: {
-            app_id: config.appid
+            app_id: xfConfig.appid
           },
           //填充business
           business: {
@@ -606,3 +604,4 @@ const btnReturn = () => {
   color: #CDF1F6;
 }
 </style>
+
