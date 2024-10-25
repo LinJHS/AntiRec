@@ -12,6 +12,9 @@ const btnList = () => {
 const btnAsync = () => {
   router.push({ name: 'async' })
 }
+const btnConfig = () => {
+  router.push({ name: 'config' })
+}
 
 </script>
 
@@ -32,6 +35,9 @@ const btnAsync = () => {
     </div>
     <div class="mode" @click="btnAsync">
       同步对抗扰动库
+    </div>
+    <div class="mode" @click="btnConfig">
+      配置接口
     </div>
   </div>
 </template>
