@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { writeTextFile, BaseDirectory } from '@tauri-apps/api/fs';
+import { ref, computed, onMounted } from 'vue';
+import { writeTextFile, readTextFile, BaseDirectory } from '@tauri-apps/api/fs';
 import router from '../router';
 
 const appid = ref('');
@@ -30,6 +30,27 @@ const saveConfig = async () => {
     // 处理保存错误
   }
 };
+
+const loadConfig = async () => {
+  try {
+    const configContent = await readTextFile('config.json', { dir: BaseDirectory.AppConfig });
+    const config = JSON.parse(configContent);
+    
+    enableASR.value = config.enableASR;
+    if (config.xfyun) {
+      appid.value = config.xfyun.appid;
+      apiSecret.value = config.xfyun.apiSecret;
+      apiKey.value = config.xfyun.apiKey;
+    }
+  } catch (error) {
+    console.error('Error loading config:', error);
+    // 如果配置文件不存在或读取失败，使用默认值
+  }
+};
+
+onMounted(() => {
+  loadConfig();
+});
 </script>
 
 <template>
