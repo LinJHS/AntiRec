@@ -21,7 +21,7 @@ const btnConfig = () => {
 <template>
   <div class="container">
     <div class="title">
-      Anti Rec
+      <img src="/images/logo-text.png" alt="Anti Rec" class="logo-img">
       <div class="border-item left_top"></div>
       <div class="border-item right_top"></div>
       <div class="border-item left_bottom"></div>
@@ -45,7 +45,7 @@ const btnConfig = () => {
 <style scoped>
 .container {
   display: flex;
-  background-image: linear-gradient(90deg, #033e66, #001a32);
+  background-image: linear-gradient(120deg, #fdfbfb 0%, #94c6e2 100%);
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -53,20 +53,21 @@ const btnConfig = () => {
   height: 100vh;
 
   .title {
-    font-weight: bold;
-    font-size: 6rem;
-    background: linear-gradient(to right, #CDF1F6, #607de8);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    border: 3px solid #0acbe033;
-    padding: 10px 20px;
-    border-radius: 30px;
     position: relative;
+    padding: 20px 40px;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+
+    .logo-img {
+      height: 100px;
+      object-fit: contain;
+    }
 
     .border-item {
       position: absolute;
-      border: 3px solid #0acbe0cc;
+      border: 3px solid #ec8c8933;
       width: 15px;
       height: 15px;
     }
@@ -105,20 +106,23 @@ const btnConfig = () => {
   }
 
   .mode {
-    margin-top: 40px;
-    font-size: 1.5rem;
-    color: #CDF1F6ee;
+    margin-top: 25px;
+    font-size: 1.2rem;
+    padding: 8px 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
+    color: #e96864;
+    font-weight: bold;
     cursor: pointer;
-    transition: all .25s;
+    transition: all 0.3s ease;
+    border: 1px solid #ec8c8933;
 
     &:hover {
-      color: #0acbe0cc;
-      text-shadow:
-        0 0 4px #0acbe088,
-        0 0 10px #0acbe088,
-        0 0 30px #0acbe088,
-        0 0 50px #ffff0088;
-
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, #ec8c8933, #ec8c8922);
+      box-shadow: 0 4px 20px #ec8c8922;
+      color: #ec8c89;
+      border-color: #ec8c8955;
     }
   }
 }
