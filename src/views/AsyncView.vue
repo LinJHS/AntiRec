@@ -56,19 +56,24 @@ const btnReturn = () => {
 <template>
   <div class="container">
     <div class="title">
-      <svg v-if="!hasComplete" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256">
-        <path fill="#CDF1F6"
-          d="M244 56v48a12 12 0 0 1-12 12h-48a12 12 0 1 1 0-24h17.1l-19-17.38c-.13-.12-.26-.24-.38-.37A76 76 0 1 0 127 204h1a75.53 75.53 0 0 0 52.15-20.72a12 12 0 0 1 16.49 17.45A99.45 99.45 0 0 1 128 228h-1.37a100 100 0 1 1 71.88-170.94L220 76.72V56a12 12 0 0 1 24 0Z" />
-      </svg>
-      <span>{{ hasComplete ? '同步成功' : '同步对抗扰动库中' }}</span>
-
+      <div class="content">
+        <svg v-if="!hasComplete" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256">
+          <path fill="currentColor"
+            d="M244 56v48a12 12 0 0 1-12 12h-48a12 12 0 1 1 0-24h17.1l-19-17.38c-.13-.12-.26-.24-.38-.37A76 76 0 1 0 127 204h1a75.53 75.53 0 0 0 52.15-20.72a12 12 0 0 1 16.49 17.45A99.45 99.45 0 0 1 128 228h-1.37a100 100 0 1 1 71.88-170.94L220 76.72V56a12 12 0 0 1 24 0Z" />
+        </svg>
+        <span>{{ displayMessage }}</span>
+      </div>
+      <div class="border-item left_top"></div>
+      <div class="border-item right_top"></div>
+      <div class="border-item left_bottom"></div>
+      <div class="border-item right_bottom"></div>
     </div>
     <div class="return" @click="btnReturn">
       <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 256 256">
-        <path fill="#CDF1F6"
+        <path fill="currentColor"
           d="M236 112a68.07 68.07 0 0 1-68 68H61l27.52 27.51a12 12 0 0 1-17 17l-48-48a12 12 0 0 1 0-17l48-48a12 12 0 1 1 17 17L61 156h107a44 44 0 0 0 0-88H80a12 12 0 0 1 0-24h88a68.07 68.07 0 0 1 68 68Z" />
       </svg>
-      返回
+      返回首页
     </div>
   </div>
 </template>
@@ -76,7 +81,7 @@ const btnReturn = () => {
 <style scoped>
 .container {
   display: flex;
-  background-image: linear-gradient(90deg, #033e66, #001a32);
+  background-image: linear-gradient(120deg, #fdfbfb 0%, #94c6e2 100%);
   width: 100vw;
   height: 100vh;
   align-items: center;
@@ -94,18 +99,64 @@ const btnReturn = () => {
 }
 
 .title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #CDF1F6;
-  font-size: 32px;
+  position: relative;
+  padding: 30px 60px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 
-  svg {
-    animation: loading 1s infinite linear;
+  .content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e96864;
+    font-size: 24px;
+    font-weight: bold;
+
+    svg {
+      animation: loading 1s infinite linear;
+      margin-right: 12px;
+    }
   }
 
-  span {
-    margin-left: 10px;
+  .border-item {
+    position: absolute;
+    border: 3px solid #ec8c8933;
+    width: 15px;
+    height: 15px;
+  }
+
+  .left_top {
+    border-right: none;
+    border-bottom: none;
+    border-top-left-radius: 100%;
+    left: 0;
+    top: 0;
+  }
+
+  .right_top {
+    border-left: none;
+    border-bottom: none;
+    border-top-right-radius: 100%;
+    right: 0;
+    top: 0;
+  }
+
+  .left_bottom {
+    border-right: none;
+    border-top: none;
+    border-bottom-left-radius: 100%;
+    left: 0;
+    bottom: 0;
+  }
+
+  .right_bottom {
+    border-left: none;
+    border-top: none;
+    border-bottom-right-radius: 100%;
+    right: 0;
+    bottom: 0;
   }
 }
 
@@ -113,7 +164,28 @@ const btnReturn = () => {
   position: absolute;
   left: 20px;
   bottom: 20px;
+  padding: 8px 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
+  color: #e96864;
+  font-weight: bold;
   cursor: pointer;
-  color: #CDF1F6;
+  transition: all 0.3s ease;
+  border: 1px solid #ec8c8933;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #ec8c8933, #ec8c8922);
+    box-shadow: 0 4px 20px #ec8c8922;
+    color: #ec8c89;
+    border-color: #ec8c8955;
+  }
+
+  svg {
+    fill: currentColor;
+  }
 }
 </style>
