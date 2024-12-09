@@ -52,7 +52,8 @@ const drawWave = async (data, canvasRef) => {
   const width = canvasRef.value.width;
   const height = canvasRef.value.height;
   const step = data.length / width;
-  context.strokeStyle = '#CDF1F6';
+  context.strokeStyle = '#e96864';
+  context.lineWidth = 2;
   context.clearRect(0, 0, width, height);
   context.beginPath();
   context.moveTo(0, height / 2);
@@ -90,56 +91,151 @@ const btnReturn = () => {
 
 <template>
   <div class="container">
-    <div class="title">
-      原始音频波形
+    <div class="wave-box">
+      <div class="wave-container">
+        <div class="wave-title">原始音频波形</div>
+        <div class="wave-display">
+          <canvas ref="canvasOriRef"></canvas>
+          <div class="border-item left_top"></div>
+          <div class="border-item right_top"></div>
+          <div class="border-item left_bottom"></div>
+          <div class="border-item right_bottom"></div>
+        </div>
+      </div>
+      <div class="wave-container">
+        <div class="wave-title">防护后音频波形</div>
+        <div class="wave-display">
+          <canvas ref="canvasNewRef"></canvas>
+          <div class="border-item left_top"></div>
+          <div class="border-item right_top"></div>
+          <div class="border-item left_bottom"></div>
+          <div class="border-item right_bottom"></div>
+        </div>
+      </div>
     </div>
-    <div class="ori">
-      <canvas ref="canvasOriRef"></canvas>
-
+    <div class="return" @click="btnReturn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 256 256">
+        <path fill="currentColor"
+          d="M236 112a68.07 68.07 0 0 1-68 68H61l27.52 27.51a12 12 0 0 1-17 17l-48-48a12 12 0 0 1 0-17l48-48a12 12 0 1 1 17 17L61 156h107a44 44 0 0 0 0-88H80a12 12 0 0 1 0-24h88a68.07 68.07 0 0 1 68 68Z" />
+      </svg>
+      返回
     </div>
-    <div class="title">
-      防护后音频波形
-    </div>
-    <div class="new">
-      <canvas ref="canvasNewRef"></canvas>
-
-    </div>
-  </div>
-  <div class="return" @click="btnReturn">
-    <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 256 256">
-      <path fill="#CDF1F6"
-        d="M236 112a68.07 68.07 0 0 1-68 68H61l27.52 27.51a12 12 0 0 1-17 17l-48-48a12 12 0 0 1 0-17l48-48a12 12 0 1 1 17 17L61 156h107a44 44 0 0 0 0-88H80a12 12 0 0 1 0-24h88a68.07 68.07 0 0 1 68 68Z" />
-    </svg>
-    返回
   </div>
 </template>
 
 <style scoped>
 .container {
-  display: flex;
-  background-image: linear-gradient(90deg, #033e66, #001a32);
+  padding-top: 20px;
+  background-image: linear-gradient(120deg, #fdfbfb 0%, #94c6e2 100%);
+  box-sizing: border-box;
   width: 100vw;
   height: 100vh;
+}
+
+.wave-box {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  /* margin: 10px; */
+  gap: 10px;
+}
+
+.wave-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
+}
 
-  canvas {
-    width: 80vw;
-    height: 40vh;
-  }
+.wave-title {
+  color: #e96864;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-align: center;
+}
 
-  .title {
-    color: #CDF1F6;
-    font-size: 28px;
-  }
+.wave-display {
+  position: relative;
+  margin: 10px;
+  width: calc(100% - 100px);
+  padding: 20px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid #ec8c8933;
+}
+
+canvas {
+  width: 100%;
+  height: 25vh;
+  /* background: linear-gradient(135deg, #ec8c8922, #ec8c8911); */
+  border-radius: 12px;
+  /* border: 1px solid #ec8c8933; */
+}
+
+.border-item {
+  position: absolute;
+  border: 3px solid #ec8c8933;
+  width: 15px;
+  height: 15px;
+}
+
+.left_top {
+  border-right: none;
+  border-bottom: none;
+  border-top-left-radius: 100%;
+  left: 0;
+  top: 0;
+}
+
+.right_top {
+  border-left: none;
+  border-bottom: none;
+  border-top-right-radius: 100%;
+  right: 0;
+  top: 0;
+}
+
+.left_bottom {
+  border-right: none;
+  border-top: none;
+  border-bottom-left-radius: 100%;
+  left: 0;
+  bottom: 0;
+}
+
+.right_bottom {
+  border-left: none;
+  border-top: none;
+  border-bottom-right-radius: 100%;
+  right: 0;
+  bottom: 0;
 }
 
 .return {
   position: absolute;
   left: 20px;
   bottom: 20px;
+  padding: 8px 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
+  color: #e96864;
+  font-weight: bold;
   cursor: pointer;
-  color: #CDF1F6;
+  transition: all 0.3s ease;
+  border: 1px solid #ec8c8933;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.return:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #ec8c8933, #ec8c8922);
+  box-shadow: 0 4px 20px #ec8c8922;
+  color: #ec8c89;
+  border-color: #ec8c8955;
 }
 </style>
