@@ -7,9 +7,9 @@
   [![GitHub Stars](https://img.shields.io/github/stars/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/stargazers)
   [![GitHub Forks](https://img.shields.io/github/forks/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/network)
   [![GitHub Issues](https://img.shields.io/github/issues/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/issues)
-  [![GitHub Contributors](https://img.shields.io/github/contributors/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/graphs/contributors)<!--
-   [![GitHub All Releases](https://img.shields.io/github/downloads/LinJHS/AntiRec/total?style=flat-square)](https://github.com/LinJHS/AntiRec/releases)
-  ![GitHub Release (latest SemVer)](https://img.shields.io/github/v/release/LinJHS/AntiRec?style=flat-square) -->
+  [![GitHub Contributors](https://img.shields.io/github/contributors/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/graphs/contributors)
+  [![GitHub All Releases](https://img.shields.io/github/downloads/LinJHS/AntiRec/total?style=flat-square)](https://github.com/LinJHS/AntiRec/releases)
+  [![GitHub Release (latest SemVer)](https://img.shields.io/github/v/release/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/releases)
   [![GitHub License](https://img.shields.io/github/license/LinJHS/AntiRec?style=flat-square)](https://github.com/LinJHS/AntiRec/blob/main/LICENSE)
 
   
