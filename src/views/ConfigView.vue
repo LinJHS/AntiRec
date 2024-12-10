@@ -55,106 +55,132 @@ onMounted(() => {
 
 <template>
   <div class="container">
-    <h1>配置接口</h1>
-    <form @submit.prevent="saveConfig">
-      <div>
-        <label>
-          <input type="checkbox" v-model="enableASR">
-          启动 ASR 识别
-        </label>
-      </div>
-      <template v-if="isASREnabled">
-        <div>
-          <label for="appid">APPID:</label>
-          <input id="appid" v-model="appid" required>
+    <div class="config-box">
+      <div class="border-item left_top"></div>
+      <div class="border-item right_top"></div>
+      <div class="border-item left_bottom"></div>
+      <div class="border-item right_bottom"></div>
+      
+      <h1>配置接口</h1>
+      <form @submit.prevent="saveConfig">
+        <div class="form-item">
+          <label>
+            <input type="checkbox" v-model="enableASR">
+            启动 ASR 识别
+          </label>
         </div>
-        <div>
-          <label for="apiSecret">API Secret:</label>
-          <input id="apiSecret" v-model="apiSecret" required>
-        </div>
-        <div>
-          <label for="apiKey">API Key:</label>
-          <input id="apiKey" v-model="apiKey" required>
-        </div>
-      </template>
-      <button type="submit">保存配置</button>
-    </form>
+        <template v-if="isASREnabled">
+          <div class="form-item">
+            <label for="appid">APPID:</label>
+            <input id="appid" v-model="appid" required>
+          </div>
+          <div class="form-item">
+            <label for="apiSecret">API Secret:</label>
+            <input id="apiSecret" v-model="apiSecret" required>
+          </div>
+          <div class="form-item">
+            <label for="apiKey">API Key:</label>
+            <input id="apiKey" v-model="apiKey" required>
+          </div>
+        </template>
+        <button type="submit">保存配置</button>
+      </form>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .container {
   display: flex;
+  background-image: linear-gradient(120deg, #fdfbfb 0%, #94c6e2 100%);
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  background-image: linear-gradient(90deg, #033e66, #001a32);
+  align-items: center;
   width: 100vw;
   height: 100vh;
-  color: #CDF1F6;
+}
+
+.config-box {
+  position: relative;
+  padding: 30px 40px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  width: 400px;
 }
 
 h1 {
-  font-size: 24px;
-  margin-bottom: 20px;
+  text-align: center;
+  color: #e96864;
+  font-size: 1.5rem;
+  margin-bottom: 25px;
   font-weight: bold;
 }
 
-form {
-  background-image: linear-gradient(90deg, #033e6688, #04558c88);
-  padding: 20px;
-  border-radius: 6px;
-  width: 300px;
-}
-
-form div {
-  margin-bottom: 15px;
+.form-item {
+  margin-bottom: 20px;
 }
 
 label {
   display: block;
-  margin-bottom: 5px;
-  font-size: 16px;
+  color: #e96864;
+  margin-bottom: 8px;
+  font-size: 1rem;
 }
 
 input[type="text"],
-input[type="password"] {
+input[type="password"],
+input {
   width: 100%;
-  padding: 8px;
-  border: 1px solid #0acbe066;
-  border-radius: 4px;
-  background-color: rgba(205, 241, 246, 0.1);
-  color: #CDF1F6;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ec8c8933;
+  background: rgba(255, 255, 255, 0.3);
+  color: #e96864;
+  transition: all 0.3s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: #ec8c8955;
+  box-shadow: 0 0 10px #ec8c8922;
 }
 
 input[type="checkbox"] {
-  margin-right: 5px;
+  width: auto;
+  margin-right: 8px;
 }
 
 button {
   width: 100%;
   padding: 10px;
-  background-color: #0acbe0;
-  color: #001a32;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
+  color: #e96864;
+  border: 1px solid #ec8c8933;
+  font-size: 1.1rem;
+  font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
 }
 
 button:hover {
-  background-color: #08a9b9;
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #ec8c8933, #ec8c8922);
+  box-shadow: 0 4px 20px #ec8c8922;
+  color: #ec8c89;
+  border-color: #ec8c8955;
 }
 
-.form-border {
+.border-item {
   position: absolute;
-  border: 2px solid #0acbe0cc;
-  width: 3px;
-  height: 3px;
+  border: 3px solid #ec8c8933;
+  width: 15px;
+  height: 15px;
 }
 
-.form-border.left_top {
+.left_top {
   border-right: none;
   border-bottom: none;
   border-top-left-radius: 100%;
@@ -162,7 +188,7 @@ button:hover {
   top: 0;
 }
 
-.form-border.right_top {
+.right_top {
   border-left: none;
   border-bottom: none;
   border-top-right-radius: 100%;
@@ -170,7 +196,7 @@ button:hover {
   top: 0;
 }
 
-.form-border.left_bottom {
+.left_bottom {
   border-right: none;
   border-top: none;
   border-bottom-left-radius: 100%;
@@ -178,7 +204,7 @@ button:hover {
   bottom: 0;
 }
 
-.form-border.right_bottom {
+.right_bottom {
   border-left: none;
   border-top: none;
   border-bottom-right-radius: 100%;
