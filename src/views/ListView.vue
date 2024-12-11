@@ -437,28 +437,33 @@ const btnReturn = () => {
 <style scoped>
 .container {
   display: flex;
-  background-image: linear-gradient(90deg, #033e66, #001a32);
+  background-image: linear-gradient(120deg, #fdfbfb 0%, #94c6e2 100%);
   width: 100vw;
   height: 100vh;
 }
 
 .left {
   width: 250px;
-  background-image: linear-gradient(90deg, #033e6688, #04558c88);
+  /* margin: 20px; */
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  /* border-radius: 20px; */
 
   .title {
-    color: #CDF1F6;
+    color: #e96864;
     font-size: 24px;
     margin: 10px;
-    padding-bottom: 5px;
+    padding-bottom: 10px;
     font-weight: bold;
-    border-bottom: 1px solid #0acbe0cc;
+    border-bottom: 1px solid #ec8c8933;
   }
 
   .subtitle {
-    color: #CDF1F6;
+    color: #e96864;
     font-size: 16px;
-    margin: 10px;
+    margin: 15px 10px;
     font-weight: bold;
   }
 
@@ -466,31 +471,44 @@ const btnReturn = () => {
     margin: 10px;
 
     .record-item {
-      padding: 0 10px;
-      border: 1px solid #0acbe066;
+      padding: 8px 15px;
+      border: 1px solid #ec8c8933;
       line-height: 30px;
-      border-radius: 6px;
+      border-radius: 12px;
       position: relative;
+      background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
+      transition: all 0.3s ease;
 
       &~.record-item {
-        margin-top: 5px;
+        margin-top: 10px;
       }
 
       .record-text {
-        color: #0acbe0cc;
+        color: #e96864;
         font-size: 16px;
       }
 
-      &.active .record-text {
-        color: #CDF1F6;
-        font-size: 16px;
+      &:hover {
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #ec8c8933, #ec8c8922);
+        box-shadow: 0 4px 20px #ec8c8922;
+      }
+
+      &.active {
+        background: linear-gradient(135deg, #ec8c8944, #ec8c8933);
+        border-color: #ec8c8955;
+        
+        .record-text {
+          color: #ec8c89;
+          font-weight: bold;
+        }
       }
 
       .record-border {
         position: absolute;
-        border: 2px solid #0acbe0cc;
-        width: 3px;
-        height: 3px;
+        border: 2px solid #ec8c8933;
+        width: 8px;
+        height: 8px;
       }
 
       .record-border.left_top {
@@ -533,50 +551,52 @@ const btnReturn = () => {
   margin: 10px;
   display: flex;
   flex-direction: column;
+  gap: 10px;
 
-  .wave-ori {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-
+  .wave-ori,
   .wave-new {
     flex: 1;
-    display: flex;
-    flex-direction: column;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
   }
 }
 
 .wave-title {
   line-height: 30px;
-  color: #CDF1F6;
+  color: #e96864;
   font-size: 20px;
-  margin: 0 auto;
+  margin: 0 auto 15px;
   font-weight: bold;
+  text-align: center;
 }
 
 .wave-graph {
   height: 128px;
+  margin: 15px 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
 }
 
 .wave-text {
   flex: 1;
-  padding: 0 10px;
-  border: 1px solid #0acbe066;
-  line-height: 30px;
-  border-radius: 6px;
+  padding: 15px;
+  border: 1px solid #ec8c8933;
+  line-height: 1.6;
+  border-radius: 12px;
   position: relative;
-
-  margin: 10px 0;
-
-  color: #CDF1F6;
+  background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
+  color: #e96864;
   font-size: 16px;
 
   .wave-text-border {
     position: absolute;
-    border: 2px solid #0acbe0cc;
-    width: 3px;
-    height: 3px;
+    border: 2px solid #ec8c8933;
+    width: 8px;
+    height: 8px;
   }
 
   .wave-text-border.left_top {
@@ -616,7 +636,28 @@ const btnReturn = () => {
   position: absolute;
   left: 20px;
   bottom: 20px;
+  padding: 8px 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
+  color: #e96864;
+  font-weight: bold;
   cursor: pointer;
-  color: #CDF1F6;
+  transition: all 0.3s ease;
+  border: 1px solid #ec8c8933;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #ec8c8933, #ec8c8922);
+    box-shadow: 0 4px 20px #ec8c8922;
+    color: #ec8c89;
+    border-color: #ec8c8955;
+  }
+
+  svg {
+    fill: currentColor;
+  }
 }
 </style>
