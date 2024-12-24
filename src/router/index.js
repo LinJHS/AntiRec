@@ -29,6 +29,12 @@ const routes = [
         component: () => import("../views/AsyncView.vue"),
       },
       {
+        path: "/async-upload",
+        meta: { requiresAuth: true },
+        name: "async-upload",
+        component: () => import("../views/AsyncUpload.vue"),
+      },
+      {
         path: "/config",
         name: "config",
         component: () => import("../views/ConfigView.vue"),

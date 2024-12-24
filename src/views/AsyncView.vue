@@ -39,7 +39,7 @@ const initUAP = async () => {
       }
     })
     .catch((_err) => {
-      router.push("/404");
+      router.push("/async-upload");
     });
 
 }
