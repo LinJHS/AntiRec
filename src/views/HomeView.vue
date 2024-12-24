@@ -2,18 +2,18 @@
 
 import router from '../router';
 
-// 各个按钮的返回
+// Navigation functions for buttons
 const btnStart = () => {
-  router.push({ name: 'protect' })
+  router.push({ name: 'protect' }) // Navigate to protect page
 }
 const btnList = () => {
-  router.push({ name: 'list' })
+  router.push({ name: 'list' }) // Navigate to list page
 }
 const btnAsync = () => {
-  router.push({ name: 'async' })
+  router.push({ name: 'async' }) // Navigate to async page
 }
 const btnConfig = () => {
-  router.push({ name: 'config' })
+  router.push({ name: 'config' }) // Navigate to config page
 }
 
 </script>
