@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { readTextFile, BaseDirectory } from '@tauri-apps/api/fs';
+import { writeTextFile, BaseDirectory } from '@tauri-apps/api/fs';
 
 const dragActive = ref(false);
 const uploadedFileName = ref('');
