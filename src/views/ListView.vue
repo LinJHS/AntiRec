@@ -383,8 +383,8 @@ const btnReturn = () => {
 <template>
   <div class="container">
     <div class="left">
-      <div class="title">Anti Rec</div>
-      <div class="subtitle">历史通讯列表</div>
+      <div class="title">{{ $t('title') }}</div>
+      <div class="subtitle">{{ $t('list.listTitle') }}</div>
       <!-- 一项都没有 -->
       <div v-if="wavePathIndex === -1" class="record-list">
       </div>
@@ -402,7 +402,7 @@ const btnReturn = () => {
     </div>
     <div class="right">
       <div class="wave-ori">
-        <div class="wave-title">原始音频波形与转录文本</div>
+        <div class="wave-title">{{ $t('list.waveTitleOri') }}</div>
         <div class="wave-graph" ref="wavesurferRefOri"></div>
         <div class="wave-text">
           <div>{{ waveTextOri }}</div>
@@ -413,7 +413,7 @@ const btnReturn = () => {
         </div>
       </div>
       <div class="wave-new">
-        <div class="wave-title">防护后音频波形与识别结果</div>
+        <div class="wave-title">{{ $t('list.waveTitleNew') }}</div>
         <div class="wave-graph" ref="wavesurferRefNew"></div>
         <div class="wave-text">
           <div>{{ waveTextNew }}</div>
@@ -430,8 +430,7 @@ const btnReturn = () => {
       <path fill="#CDF1F6"
         d="M236 112a68.07 68.07 0 0 1-68 68H61l27.52 27.51a12 12 0 0 1-17 17l-48-48a12 12 0 0 1 0-17l48-48a12 12 0 1 1 17 17L61 156h107a44 44 0 0 0 0-88H80a12 12 0 0 1 0-24h88a68.07 68.07 0 0 1 68 68Z" />
     </svg>
-    返回
-  </div>
+    {{ $t('return') }} </div>
 </template>
 
 <style scoped>
