@@ -5,5 +5,11 @@
     "btnAsync": "Synchronize Anti-disturbance Library",
     "btnConfig": "Configure API"
   },
-  "title": "Anti Rec"
+  "title": "Anti Rec",
+  "list": {
+    "waveTitleNew": "Audio waveform and recognition results after protection",
+    "listTitle": "Historical list",
+    "waveTitleOri": "Original audio waveform and transcribed text"
+  },
+  "return": "return"
 }
