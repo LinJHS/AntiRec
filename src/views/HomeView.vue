@@ -28,16 +28,16 @@ const btnConfig = () => {
       <div class="border-item right_bottom"></div>
     </div>
     <div class="mode" @click="btnStart">
-      启动 Anti Rec
+      {{ $t('home.btnStart') }}
     </div>
     <div class="mode" @click="btnList">
-      查看历史通信记录
+      {{ $t('home.btnList') }}
     </div>
     <div class="mode" @click="btnAsync">
-      同步对抗扰动库
+      {{ $t('home.btnAsync') }}
     </div>
     <div class="mode" @click="btnConfig">
-      配置接口
+      {{ $t('home.btnConfig') }}
     </div>
   </div>
 </template>

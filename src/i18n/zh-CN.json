@@ -1,0 +1,9 @@
+{
+  "home": {
+    "btnStart": "启动 Anti Rec",
+    "btnList": "查看历史通信记录",
+    "btnAsync": "同步对抗扰动库",
+    "btnConfig": "配置接口"
+  },
+  "title": "Anti Rec"
+}
