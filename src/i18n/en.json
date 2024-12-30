@@ -1,0 +1,9 @@
+{
+  "home": {
+    "btnStart": "Start Anti Rec",
+    "btnList": "View Historical Communication Records",
+    "btnAsync": "Synchronize Anti-disturbance Library",
+    "btnConfig": "Configure API"
+  },
+  "title": "Anti Rec"
+}
