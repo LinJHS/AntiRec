@@ -5,5 +5,11 @@
     "btnAsync": "同步对抗扰动库",
     "btnConfig": "配置接口"
   },
-  "title": "Anti Rec"
+  "title": "Anti Rec",
+  "list": {
+    "listTitle": "历史通讯列表",
+    "waveTitleOri": "原始音频波形与转录文本",
+    "waveTitleNew": "防护后音频波形与识别结果"
+  },
+  "return": "返回"
 }
