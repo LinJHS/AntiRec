@@ -78,9 +78,9 @@ AntiRec leverages a robust stack of modern technologies:
 We welcome contributions! Here’s how you can get involved:
 
 1. Fork the repository.
-2. Create your feature branch (`git checkout -b feature/my-feature`).
+2. Create your feature branch (`git checkout -b feature-my-feature`).
 3. Commit your changes (`git commit -m 'Add some feature'`).
-4. Push to the branch (`git push origin feature/my-feature`).
+4. Push to the branch (`git push origin feature-my-feature`).
 5. Open a pull request.
 
 ## 📜 License
