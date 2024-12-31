@@ -78,9 +78,9 @@ AntiRec 利用了强大而现代的技术堆栈：
 我们欢迎贡献！以下是您如何参与的方法：
 
 1. fork 该仓库。
-2. 创建您的 feature 分支 (`git checkout -b feature/my-feature`)。
+2. 创建您的 feature 分支 (`git checkout -b feature-my-feature`)。
 3. 提交更改 (`git commit -m 'Add some feature'`)。
-4. 推送到分支 (`git push origin feature/my-feature`)。
+4. 推送到分支 (`git push origin feature-my-feature`)。
 5. 提交 pull request。
 
 ## 📜 许可证
