@@ -4,7 +4,7 @@ import { writeTextFile, BaseDirectory } from '@tauri-apps/api/fs';
 
 const dragActive = ref(false);
 const uploadedFileName = ref('');
-const uploadMessage = ref('上传对抗扰动文件');
+const uploadMessage = ref($t('async.uploadMessage'));
 
 const handleFileUpload = async (event) => {
   const file = event.target.files?.[0] || event.dataTransfer?.files?.[0];
@@ -17,11 +17,11 @@ const handleFileUpload = async (event) => {
       // 将文件内容保存到应用程序数据目录
       await writeTextFile('uap/uap.ar', fileContent, { dir: BaseDirectory.AppData });
       uploadedFileName.value = file.name;
-      uploadMessage.value = '上传成功';
+      uploadMessage.value = $t('async.uploadSuccess');
     };
     reader.readAsText(file);
   } catch (error) {
-    uploadMessage.value = '上传失败，请重试';
+    uploadMessage.value = $t('async.uploadError');
   }
 };
 
@@ -55,8 +55,8 @@ const btnReturn = () => {
       <p class="upload-message">{{ uploadMessage }}</p>
       <div class="dropzone" :class="{ active: dragActive }" @dragenter="handleDragEnter" @dragleave="handleDragLeave"
         @dragover="handleDragOver" @drop="handleDrop" @click="$refs.fileInput.click()">
-        <p v-if="!uploadedFileName">拖拽文件到此处或点击上传</p>
-        <p v-else>已上传文件: {{ uploadedFileName }}</p>
+        <p v-if="!uploadedFileName">{{ $t('async.dropzone') }}</p>
+        <p v-else>{{ $t('async.dropzoneAlready') }} {{ uploadedFileName }}</p>
         <input type="file" ref="fileInput" class="file-input" @change="handleFileUpload" style="display: none" />
       </div>
     </div>
@@ -65,8 +65,7 @@ const btnReturn = () => {
         <path fill="currentColor"
           d="M236 112a68.07 68.07 0 0 1-68 68H61l27.52 27.51a12 12 0 0 1-17 17l-48-48a12 12 0 0 1 0-17l48-48a12 12 0 1 1 17 17L61 156h107a44 44 0 0 0 0-88H80a12 12 0 0 1 0-24h88a68.07 68.07 0 0 1 68 68Z" />
       </svg>
-      返回首页
-    </div>
+      {{ $t('return') }} </div>
   </div>
 </template>
 

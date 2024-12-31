@@ -11,5 +11,12 @@
     "listTitle": "Historical list",
     "waveTitleOri": "Original audio waveform and transcribed text"
   },
-  "return": "return"
+  "return": "return",
+  "async": {
+    "dropzone": "Drag and drop files here or click to upload",
+    "dropzoneAlready": "Uploaded files:",
+    "uploadError": "Upload failed, please try again",
+    "uploadMessage": "Upload the anti-disturbance file",
+    "uploadSuccess": "Upload successful"
+  }
 }
