@@ -38,6 +38,7 @@ Follow these steps to get the app up and running on your system.
 - [Tauri](https://tauri.app/) (install using the official guide)
 - [pnpm](https://pnpm.io/) (a fast, disk space-efficient package manager)
 - A valid audio input device (microphone)
+- A virtual sound card driver such as "Virtual Audio Cable"
 
 ### Installation
 1. Clone the repository:
