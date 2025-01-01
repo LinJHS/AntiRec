@@ -37,6 +37,7 @@
 - [Tauri](https://tauri.app/)（按照官方指南安装）
 - [pnpm](https://pnpm.io/)（一个快速且节省磁盘空间的包管理器）
 - 合法的音频输入设备（比如：麦克风）
+- 虚拟声卡驱动程序（比如 "Virtual Audio Cable"）
 
 ### 安装
 1. 克隆仓库：
