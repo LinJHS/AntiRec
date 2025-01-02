@@ -857,9 +857,9 @@ snapshots:
       '@tauri-apps/api': 1.6.0
       axios: 1.7.7
       crypto-js: 4.2.0
+      js-cookie: 3.0.5
       pinia: 2.2.2(vue@3.5.3)
       vue: 3.5.3
-      vue-i18n: 11.0.1(vue@3.5.3)
       vue-router: 4.4.3(vue@3.5.3)
       wavesurfer.js: 7.8.8
     transitivePeerDependencies:
