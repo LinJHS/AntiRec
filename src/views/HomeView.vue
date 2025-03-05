@@ -70,15 +70,22 @@ const btnConfig = () => {
 
   .title {
     position: relative;
-    padding: 20px 40px;
-    border-radius: 30px;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 30px 50px;  /* 增加内边距 */
+    border-radius: 35px;  /* 增加圆角 */
+    background: rgba(255, 255, 255, 0.25);  /* 稍微增加透明度 */
+    backdrop-filter: blur(12px);  /* 增加模糊效果 */
+    border: 1px solid rgba(255, 255, 255, 0.4);  /* 边框更明显 */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);  /* 添加阴影 */
+    margin-bottom: 20px;  /* 增加底部间距 */
 
     .logo-img {
-      height: 100px;
+      height: 120px;  /* 稍微增大logo */
       object-fit: contain;
+      transition: transform 0.3s ease;  /* 添加过渡效果 */
+
+      &:hover {
+        transform: scale(1.02);  /* 悬停时轻微放大 */
+      }
     }
 
     .border-item {
@@ -122,44 +129,59 @@ const btnConfig = () => {
   }
 
   .mode {
-    margin-top: 25px;
-    font-size: 1.2rem;
-    padding: 8px 20px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
+    margin-top: 20px;
+    font-size: 1.25rem;
+    padding: 12px 30px;  /* 增加按钮内边距 */
+    border-radius: 15px;  /* 增加圆角 */
+    background: linear-gradient(135deg, #ec8c8925, #ec8c8915);
     color: #e96864;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    border: 1px solid #ec8c8933;
+    transition: all 0.4s ease;
+    border: 1px solid #ec8c8940;
+    min-width: 200px;  /* 统一按钮宽度 */
+    text-align: center;  /* 文字居中 */
+    letter-spacing: 1px;  /* 增加字间距 */
 
     &:hover {
-      transform: translateY(-2px);
-      background: linear-gradient(135deg, #ec8c8933, #ec8c8922);
-      box-shadow: 0 4px 20px #ec8c8922;
+      transform: translateY(-3px);
+      background: linear-gradient(135deg, #ec8c8940, #ec8c8925);
+      box-shadow: 0 6px 25px #ec8c8930;
       color: #ec8c89;
-      border-color: #ec8c8955;
+      border-color: #ec8c8960;
+    }
+
+    &:active {
+      transform: translateY(1px);  /* 点击效果 */
     }
   }
 }
 
 .lang-select {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  top: 25px;
+  right: 25px;
+  padding: 10px 15px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   color: #e96864;
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-}
+  outline: none;  /* 移除默认outline */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);  /* 添加阴影 */
 
-.lang-select:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: #ec8c8955;
+  &:hover {
+    background: rgba(255, 255, 255, 0.35);
+    border-color: #ec8c8960;
+    transform: translateY(-1px);  /* 悬停时轻微上浮 */
+  }
+
+  &:focus {
+    border-color: #ec8c8980;
+    box-shadow: 0 4px 20px rgba(236, 140, 137, 0.15);
+  }
 }
 </style>
