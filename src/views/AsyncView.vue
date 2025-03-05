@@ -5,8 +5,11 @@ import axios from "axios";
 import router from '../router'
 import { exists, createDir, writeTextFile, BaseDirectory } from '@tauri-apps/api/fs';
 
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
+
 const hasComplete = ref(false)
-const displayMessage = ref('同步对抗扰动库中')
+const displayMessage = ref(t('async.displaySync'))
 
 const baseURL = import.meta.env.VITE_BASE_URL;
 const timeout = 10000;
@@ -21,7 +24,7 @@ const writeUAP = async (data) => {
     dir: BaseDirectory.AppData
   });
   hasComplete.value = true
-  displayMessage.value = '同步成功'
+  displayMessage.value = t('async.displaySyncSuccess')
 }
 
 // 从远程获取 UAP 信息
@@ -35,7 +38,7 @@ const initUAP = async () => {
         writeUAP(res.data)
       } else {
         hasComplete.value = true
-        displayMessage.value = '无法获取对抗扰动库'
+        displayMessage.value = t('async.displaySyncFail')
       }
     })
     .catch((_err) => {
@@ -73,8 +76,7 @@ const btnReturn = () => {
         <path fill="currentColor"
           d="M236 112a68.07 68.07 0 0 1-68 68H61l27.52 27.51a12 12 0 0 1-17 17l-48-48a12 12 0 0 1 0-17l48-48a12 12 0 1 1 17 17L61 156h107a44 44 0 0 0 0-88H80a12 12 0 0 1 0-24h88a68.07 68.07 0 0 1 68 68Z" />
       </svg>
-      返回首页
-    </div>
+      {{ $t('return') }} </div>
   </div>
 </template>
 
