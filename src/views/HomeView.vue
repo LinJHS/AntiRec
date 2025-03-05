@@ -149,9 +149,7 @@ const btnConfig = () => {
   right: 20px;
   padding: 8px 20px;
   border-radius: 12px;
-  /* 使用伪元素来处理渐变背景 */
-  position: relative;
-  background: transparent;
+  background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
   backdrop-filter: blur(10px);
   border: 1px solid #ec8c8933;
   color: #e96864;
@@ -166,24 +164,8 @@ const btnConfig = () => {
   background-position: right 12px center;
   padding-right: 35px;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
-    z-index: -1;
-    transition: all 0.3s ease;
-  }
-
-  &:hover::before {
-    background: linear-gradient(135deg, #ec8c8933, #ec8c8922);
-  }
-
   &:hover {
+    background: linear-gradient(135deg, #ec8c8933, #ec8c8922);
     box-shadow: 0 4px 20px #ec8c8922;
     color: #ec8c89;
     border-color: #ec8c8955;
