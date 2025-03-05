@@ -2,13 +2,18 @@
 import router from '../router';
 import { useI18n } from 'vue-i18n';
 import Cookies from 'js-cookie';
+import { ref } from 'vue';
 
 const { locale } = useI18n();
+
+
+const isOpen = ref(false);
 
 // 语言切换函数
 const changeLanguage = (lang) => {
   locale.value = lang;
   Cookies.set('language', lang);
+  isOpen.value = false;  // 选择后关闭下拉菜单
 }
 
 // Navigation functions for buttons
@@ -29,12 +34,14 @@ const btnConfig = () => {
 
 <template>
   <div class="container">
-    <!-- 添加语言选择器 -->
-    <select class="lang-select" :value="locale" @change="changeLanguage($event.target.value)">
-      <option value="zh">中文</option>
-      <option value="en">English</option>
-    </select>
-
+    <!-- 替换 select 为自定义下拉菜单 -->
+    <div class="lang-select" @click="isOpen = !isOpen">
+      <span>{{ locale === 'zh' ? '中文' : 'English' }}</span>
+      <div class="options" v-if="isOpen">
+        <div class="option" @click="changeLanguage('zh')">中文</div>
+        <div class="option" @click="changeLanguage('en')">English</div>
+      </div>
+    </div>
     <div class="title">
       <img src="/images/logo-text.png" :alt="$t('title')" class="logo-img">
       <div class="border-item left_top"></div>
@@ -157,12 +164,20 @@ const btnConfig = () => {
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23e96864' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
   padding-right: 35px;
+  /* 添加箭头 */
+  &::after {
+    content: '';
+    position: absolute;
+    right: 15px;
+    top: 45%;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #e96864;
+    border-bottom: 2px solid #e96864;
+    transform: translateY(-50%) rotate(45deg);
+    transition: transform 0.3s ease;
+  }
 
   &:hover {
     background: linear-gradient(135deg, #ec8c8933, #ec8c8922);
@@ -171,10 +186,26 @@ const btnConfig = () => {
     border-color: #ec8c8955;
   }
 
-  option {
-    background: white;
-    color: #e96864;
-    padding: 8px;
+  .options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ec8c8933;
+
+    .option {
+      padding: 8px 20px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(233, 104, 100, 0.1);
+      }
+    }
   }
 }
 </style>
