@@ -6,10 +6,14 @@ import { ref } from 'vue';
 
 const { locale } = useI18n();
 
+
+const isOpen = ref(false);
+
 // 语言切换函数
 const changeLanguage = (lang) => {
   locale.value = lang;
   Cookies.set('language', lang);
+  isOpen.value = false;  // 选择后关闭下拉菜单
 }
 
 // Navigation functions for buttons
@@ -59,19 +63,6 @@ const btnConfig = () => {
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref } from 'vue';
-
-const isOpen = ref(false);
-
-// 修改语言切换函数
-const changeLanguage = (lang) => {
-  locale.value = lang;
-  Cookies.set('language', lang);
-  isOpen.value = false;  // 选择后关闭下拉菜单
-}
-</script>
 
 <style scoped>
 .lang-select {
