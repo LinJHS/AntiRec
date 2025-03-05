@@ -1,6 +1,15 @@
 <script setup>
-
 import router from '../router';
+import { useI18n } from 'vue-i18n';
+import Cookies from 'js-cookie';
+
+const { locale } = useI18n();
+
+// 语言切换函数
+const changeLanguage = (lang) => {
+  locale.value = lang;
+  Cookies.set('language', lang);
+}
 
 // Navigation functions for buttons
 const btnStart = () => {
@@ -20,8 +29,14 @@ const btnConfig = () => {
 
 <template>
   <div class="container">
+    <!-- 添加语言选择器 -->
+    <select class="lang-select" :value="locale" @change="changeLanguage($event.target.value)">
+      <option value="zh">中文</option>
+      <option value="en">English</option>
+    </select>
+
     <div class="title">
-      <img src="/images/logo-text.png" alt="Anti Rec" class="logo-img">
+      <img src="/images/logo-text.png" :alt="$t('title')" class="logo-img">
       <div class="border-item left_top"></div>
       <div class="border-item right_top"></div>
       <div class="border-item left_bottom"></div>
@@ -44,6 +59,7 @@ const btnConfig = () => {
 
 <style scoped>
 .container {
+  position: relative; /* 添加相对定位 */
   display: flex;
   background-image: linear-gradient(120deg, #fdfbfb 0%, #94c6e2 100%);
   flex-direction: column;
@@ -125,5 +141,25 @@ const btnConfig = () => {
       border-color: #ec8c8955;
     }
   }
+}
+
+.lang-select {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #e96864;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.lang-select:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: #ec8c8955;
 }
 </style>
