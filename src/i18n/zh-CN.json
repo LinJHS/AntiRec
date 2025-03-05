@@ -17,6 +17,16 @@
     "uploadSuccess": "上传成功",
     "uploadError": "上传失败，请重试",
     "dropzone": "拖拽文件到此处或点击上传",
-    "dropzoneAlready": "已上传文件:"
+    "dropzoneAlready": "已上传文件:",
+    "displaySync": "同步对抗扰动库中",
+    "displaySyncSuccess": "同步成功",
+    "displaySyncFail": "无法获取对抗扰动库"
+  },
+  "notfound": {
+    "notfound": "页面未找到"
+  },
+  "protect": {
+    "ori": "原始音频波形",
+    "new": "防护后音频波形"
   }
 }
