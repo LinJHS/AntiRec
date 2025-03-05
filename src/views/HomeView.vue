@@ -169,11 +169,10 @@ const btnConfig = () => {
   &::after {
     content: '';
     position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 10px;
-    height: 10px;
+    right: 15px;
+    top: 45%;
+    width: 8px;
+    height: 8px;
     border-right: 2px solid #e96864;
     border-bottom: 2px solid #e96864;
     transform: translateY(-50%) rotate(45deg);
