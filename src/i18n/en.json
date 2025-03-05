@@ -17,6 +17,16 @@
     "dropzoneAlready": "Uploaded files:",
     "uploadError": "Upload failed, please try again",
     "uploadMessage": "Upload the anti-disturbance file",
-    "uploadSuccess": "Upload successful"
+    "uploadSuccess": "Upload successful",
+    "displaySync": "Synchronize the anti-disturbance library",
+    "displaySyncFail": "The anti-disturbance library could not be obtained",
+    "displaySyncSuccess": "Synchronization succeeded"
+  },
+  "notfound": {
+    "notfound": "Page not found"
+  },
+  "protect": {
+    "new": "Protected audio waveform",
+    "ori": "Raw audio waveform"
   }
 }
