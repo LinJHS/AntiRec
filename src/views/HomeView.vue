@@ -147,35 +147,31 @@ const btnConfig = () => {
   position: absolute;
   top: 20px;
   right: 20px;
-  padding: 8px 20px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
-  border: 1px solid #ec8c8933;
+  border: 1px solid rgba(233, 104, 100, 0.2);
   color: #e96864;
-  font-size: 1rem;
-  font-weight: bold;
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
   appearance: none;
   -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23e96864' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 35px;
+  background-position: right 10px center;
+  padding-right: 30px;
 
   &:hover {
-    transform: translateY(-2px);
-    background: linear-gradient(135deg, #ec8c8933, #ec8c8922);
-    box-shadow: 0 4px 20px #ec8c8922;
-    color: #ec8c89;
-    border-color: #ec8c8955;
+    background-color: rgba(233, 104, 100, 0.1);
+    border-color: rgba(233, 104, 100, 0.3);
   }
 
   option {
     background: white;
     color: #e96864;
-    padding: 8px;
   }
 }
 </style>
