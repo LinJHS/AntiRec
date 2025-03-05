@@ -65,6 +65,91 @@ const btnConfig = () => {
 </template>
 
 <style scoped>
+.container {
+  position: relative;
+  display: flex;
+  background-image: linear-gradient(120deg, #fdfbfb 0%, #94c6e2 100%);
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+
+  .title {
+    position: relative;
+    padding: 20px 40px;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+
+    .logo-img {
+      height: 100px;
+      object-fit: contain;
+    }
+
+    .border-item {
+      position: absolute;
+      border: 3px solid #ec8c8933;
+      width: 15px;
+      height: 15px;
+    }
+
+    .left_top {
+      border-right: none;
+      border-bottom: none;
+      border-top-left-radius: 100%;
+      left: 0;
+      top: 0;
+    }
+
+    .right_top {
+      border-left: none;
+      border-bottom: none;
+      border-top-right-radius: 100%;
+      right: 0;
+      top: 0;
+    }
+
+    .left_bottom {
+      border-right: none;
+      border-top: none;
+      border-bottom-left-radius: 100%;
+      left: 0;
+      bottom: 0;
+    }
+
+    .right_bottom {
+      border-left: none;
+      border-top: none;
+      border-bottom-right-radius: 100%;
+      right: 0;
+      bottom: 0;
+    }
+  }
+
+  .mode {
+    margin-top: 25px;
+    font-size: 1.2rem;
+    padding: 8px 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
+    color: #e96864;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #ec8c8933;
+
+    &:hover {
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, #ec8c8933, #ec8c8922);
+      box-shadow: 0 4px 20px #ec8c8922;
+      color: #ec8c89;
+      border-color: #ec8c8955;
+    }
+  }
+}
+
 .lang-select {
   position: absolute;
   top: 20px;
