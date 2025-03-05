@@ -11,7 +11,7 @@ const btnReturn = () => {
   <div class="container">
     <div class="title">
       <div class="text">404</div>
-      <div class="subtitle">页面未找到</div>
+      <div class="subtitle">{{ $t('notfound.notfound') }}</div>
       <div class="border-item left_top"></div>
       <div class="border-item right_top"></div>
       <div class="border-item left_bottom"></div>
@@ -22,8 +22,7 @@ const btnReturn = () => {
         <path fill="currentColor"
           d="M236 112a68.07 68.07 0 0 1-68 68H61l27.52 27.51a12 12 0 0 1-17 17l-48-48a12 12 0 0 1 0-17l48-48a12 12 0 1 1 17 17L61 156h107a44 44 0 0 0 0-88H80a12 12 0 0 1 0-24h88a68.07 68.07 0 0 1 68 68Z" />
       </svg>
-      返回首页
-    </div>
+      {{ $t('return') }} </div>
   </div>
 </template>
 
