@@ -614,7 +614,7 @@ const btnReturn = () => {
 
 .wave-text {
   flex: 1;
-  min-height: 150px;    /* 设置最小高度 */
+  min-height: 100px;    /* 减小最小高度 */
   padding: 15px;
   border: 1px solid #ec8c8933;
   line-height: 1.6;
@@ -624,7 +624,17 @@ const btnReturn = () => {
   color: #e96864;
   font-size: 16px;
   overflow-y: auto;
-  margin-bottom: 0;    /* 移除底部间距 */
+  margin: 15px 0;      /* 添加上下间距 */
+  display: flex;       /* 添加 flex 布局 */
+  flex-direction: column; /* 垂直排列 */
+
+  > div:first-child {  /* 文本内容容器 */
+    flex: 1;
+    overflow-y: auto;
+    word-break: break-all; /* 允许在任意字符间换行 */
+    white-space: pre-wrap; /* 保留空格和换行符 */
+  }
+
   /* 自定义滚动条样式 */
   &::-webkit-scrollbar {
     width: 6px;
