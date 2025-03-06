@@ -33,7 +33,7 @@ const btnConfig = () => {
 </script>
 
 <template>
-  <div class="container">
+  <div class="container" :class="locale">
     <!-- 替换 select 为自定义下拉菜单 -->
     <div class="lang-select" @click="isOpen = !isOpen">
       <span>{{ locale === 'zh' ? '中文' : 'English' }}</span>
@@ -74,6 +74,14 @@ const btnConfig = () => {
   align-items: center;
   width: 100vw;
   height: 100vh;
+
+  &.en .mode {
+    min-width: 240px;
+  }
+
+  &.zh .mode {
+    min-width: 200px;
+  }
 
   .title {
     position: relative;
@@ -139,9 +147,11 @@ const btnConfig = () => {
     cursor: pointer;
     transition: all 0.3s ease;
     border: 1px solid #ec8c8933;
-    min-width: 200px; /* 添加最小宽度 */
-    text-align: center; /* 确保文字居中 */
-  
+    min-width: 200px;
+    /* 添加最小宽度 */
+    text-align: center;
+    /* 确保文字居中 */
+
     &:hover {
       transform: translateY(-2px);
       background: linear-gradient(135deg, #ec8c8933, #ec8c8922);
@@ -167,6 +177,7 @@ const btnConfig = () => {
   cursor: pointer;
   transition: all 0.3s ease;
   padding-right: 35px;
+
   /* 添加箭头 */
   &::after {
     content: '';
