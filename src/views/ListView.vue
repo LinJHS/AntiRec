@@ -443,12 +443,14 @@ const btnReturn = () => {
 
 .left {
   width: 250px;
-  /* margin: 20px; */
   padding: 15px;
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  /* border-radius: 20px; */
+  display: flex;           /* 添加 flex 布局 */
+  flex-direction: column;  /* 垂直排列 */
+  height: 100vh;          /* 设置高度为视口高度 */
+  box-sizing: border-box; /* 确保padding不会增加总宽度 */
 
   .title {
     color: #e96864;
@@ -468,6 +470,28 @@ const btnReturn = () => {
 
   .record-list {
     margin: 10px;
+    flex: 1;              /* 占据剩余空间 */
+    overflow-y: auto;     /* 添加垂直滚动条 */
+    overflow-x: hidden;   /* 隐藏水平滚动条 */
+
+    /* 自定义滚动条样式 */
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(236, 140, 137, 0.1);
+      border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(236, 140, 137, 0.2);
+      border-radius: 3px;
+      
+      &:hover {
+        background: rgba(236, 140, 137, 0.3);
+      }
+    }
 
     .record-item {
       padding: 8px 15px;
