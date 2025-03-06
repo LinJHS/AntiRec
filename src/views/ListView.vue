@@ -444,22 +444,18 @@ const btnReturn = () => {
 
 .left {
   width: 250px;
-  padding: 15px;
+  padding: 15px 12px;  /* 修改左右内边距 */
   padding-bottom: 70px;
-  /* 为返回按钮预留空间 */
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   display: flex;
-  /* 添加 flex 布局 */
   flex-direction: column;
-  /* 垂直排列 */
   height: 100vh;
-  /* 设置高度为视口高度 */
   box-sizing: border-box;
-  /* 确保padding不会增加总宽度 */
 
   .title {
+    margin: 10px 5px;  /* 调整标题边距 */
     color: #e96864;
     font-size: 24px;
     margin: 10px;
@@ -471,13 +467,13 @@ const btnReturn = () => {
   .subtitle {
     color: #e96864;
     font-size: 16px;
-    margin: 15px 10px;
+    margin: 15px 5px;  /* 调整副标题边距 */
     font-weight: bold;
   }
 
   .record-list {
-    margin: 10px;
-    padding-right: 6px;  /* 减小右侧内边距 */
+    margin: 10px 5px;  /* 调整列表边距 */
+    padding-right: 4px;  /* 微调滚动条间距 */
     flex: 1;
     /* 占据剩余空间 */
     overflow-y: auto;
