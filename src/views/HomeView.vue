@@ -76,7 +76,7 @@ const btnConfig = () => {
   height: 100vh;
 
   &.en .mode {
-    min-width: 240px;
+    min-width: 400px;
   }
 
   &.zh .mode {
