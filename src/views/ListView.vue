@@ -430,7 +430,8 @@ const btnReturn = () => {
       <path fill="#CDF1F6"
         d="M236 112a68.07 68.07 0 0 1-68 68H61l27.52 27.51a12 12 0 0 1-17 17l-48-48a12 12 0 0 1 0-17l48-48a12 12 0 1 1 17 17L61 156h107a44 44 0 0 0 0-88H80a12 12 0 0 1 0-24h88a68.07 68.07 0 0 1 68 68Z" />
     </svg>
-    {{ $t('return') }} </div>
+    {{ $t('return') }}
+  </div>
 </template>
 
 <style scoped>
@@ -444,14 +445,19 @@ const btnReturn = () => {
 .left {
   width: 250px;
   padding: 15px;
-  padding-bottom: 70px;  /* 为返回按钮预留空间 */
+  padding-bottom: 70px;
+  /* 为返回按钮预留空间 */
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  display: flex;           /* 添加 flex 布局 */
-  flex-direction: column;  /* 垂直排列 */
-  height: 100vh;          /* 设置高度为视口高度 */
-  box-sizing: border-box; /* 确保padding不会增加总宽度 */
+  display: flex;
+  /* 添加 flex 布局 */
+  flex-direction: column;
+  /* 垂直排列 */
+  height: 100vh;
+  /* 设置高度为视口高度 */
+  box-sizing: border-box;
+  /* 确保padding不会增加总宽度 */
 
   .title {
     color: #e96864;
@@ -471,9 +477,12 @@ const btnReturn = () => {
 
   .record-list {
     margin: 10px;
-    flex: 1;              /* 占据剩余空间 */
-    overflow-y: auto;     /* 添加垂直滚动条 */
-    overflow-x: hidden;   /* 隐藏水平滚动条 */
+    flex: 1;
+    /* 占据剩余空间 */
+    overflow-y: auto;
+    /* 添加垂直滚动条 */
+    overflow-x: hidden;
+    /* 隐藏水平滚动条 */
 
     /* 自定义滚动条样式 */
     &::-webkit-scrollbar {
@@ -488,7 +497,7 @@ const btnReturn = () => {
     &::-webkit-scrollbar-thumb {
       background: rgba(236, 140, 137, 0.2);
       border-radius: 3px;
-      
+
       &:hover {
         background: rgba(236, 140, 137, 0.3);
       }
@@ -521,7 +530,7 @@ const btnReturn = () => {
       &.active {
         background: linear-gradient(135deg, #ec8c8944, #ec8c8933);
         border-color: #ec8c8955;
-        
+
         .record-text {
           color: #ec8c89;
           font-weight: bold;
@@ -578,11 +587,12 @@ const btnReturn = () => {
   gap: 10px;
   height: calc(100vh - 20px);
   box-sizing: border-box;
-  
+
   .wave-ori,
   .wave-new {
     flex: 1;
-    padding: 20px;
+    padding: 15px;
+    /* 减小整体内边距 */
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -590,31 +600,35 @@ const btnReturn = () => {
     display: flex;
     flex-direction: column;
     min-height: 0;
+    gap: 10px;
+    /* 添加子元素间距 */
   }
 }
 
 .wave-title {
-  height: 30px;         /* 固定标题高度 */
+  height: 30px;
   line-height: 30px;
   color: #e96864;
   font-size: 20px;
-  margin-bottom: 15px;
+  margin: 0;
+  /* 移除margin */
   font-weight: bold;
   text-align: center;
   flex-shrink: 0;
 }
 
 .wave-graph {
-  flex: 1;             /* 让波形图占据剩余空间 */
-  margin: 15px 0;
+  flex: 1;
+  margin: 0;
+  /* 移除margin */
   padding: 10px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  min-height: 80px;    /* 设置最小高度 */
+  min-height: 80px;
 }
 
 .wave-text {
-  height: 72px;        /* 固定文本区域高度，约4行文本 */
+  height: 72px;
   padding: 15px;
   border: 1px solid #ec8c8933;
   line-height: 1.2em;
@@ -624,10 +638,12 @@ const btnReturn = () => {
   color: #e96864;
   font-size: 16px;
   overflow-y: auto;
-  margin: 15px 0 5px 0;  /* 修改底部间距为5px */
+  margin: 0;
+  /* 移除margin */
 
-  > div:first-child {
-    max-height: 4.8em;  /* 限制最大显示4行 */
+  >div:first-child {
+    max-height: 4.8em;
+    /* 限制最大显示4行 */
     overflow-y: auto;
     word-break: break-word;
     white-space: pre-wrap;
@@ -646,7 +662,7 @@ const btnReturn = () => {
   &::-webkit-scrollbar-thumb {
     background: rgba(236, 140, 137, 0.2);
     border-radius: 3px;
-    
+
     &:hover {
       background: rgba(236, 140, 137, 0.3);
     }
