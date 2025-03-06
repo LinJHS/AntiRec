@@ -614,7 +614,8 @@ const btnReturn = () => {
 
 .wave-text {
   flex: 1;
-  min-height: 100px;    /* 减小最小高度 */
+  min-height: 100px;
+  max-width: 100%;      /* 限制最大宽度 */
   padding: 15px;
   border: 1px solid #ec8c8933;
   line-height: 1.6;
@@ -624,15 +625,16 @@ const btnReturn = () => {
   color: #e96864;
   font-size: 16px;
   overflow-y: auto;
-  margin: 15px 0;      /* 添加上下间距 */
-  display: flex;       /* 添加 flex 布局 */
-  flex-direction: column; /* 垂直排列 */
+  margin: 15px 0;
+  display: flex;
+  flex-direction: column;
 
-  > div:first-child {  /* 文本内容容器 */
+  > div:first-child {
     flex: 1;
     overflow-y: auto;
-    word-break: break-all; /* 允许在任意字符间换行 */
-    white-space: pre-wrap; /* 保留空格和换行符 */
+    word-break: normal;  /* 改用正常的换行规则 */
+    white-space: normal; /* 改用正常的空格处理 */
+    width: 100%;        /* 确保文本容器不会超出父容器 */
   }
 
   /* 自定义滚动条样式 */
