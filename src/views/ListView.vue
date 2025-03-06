@@ -576,6 +576,9 @@ const btnReturn = () => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  height: 100vh;          /* 设置高度为视口高度 */
+  box-sizing: border-box; /* 确保padding不会增加总高度 */
+  padding: 10px;         /* 内边距 */
 
   .wave-ori,
   .wave-new {
@@ -585,6 +588,9 @@ const btnReturn = () => {
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
+    min-height: 0;      /* 允许容器缩小 */
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -615,6 +621,27 @@ const btnReturn = () => {
   background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
   color: #e96864;
   font-size: 16px;
+  overflow-y: auto;     /* 添加垂直滚动条 */
+  min-height: 0;        /* 允许容器缩小 */
+
+  /* 自定义滚动条样式 */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(236, 140, 137, 0.1);
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(236, 140, 137, 0.2);
+    border-radius: 3px;
+    
+    &:hover {
+      background: rgba(236, 140, 137, 0.3);
+    }
+  }
 
   .wave-text-border {
     position: absolute;
