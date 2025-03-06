@@ -576,10 +576,9 @@ const btnReturn = () => {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  height: 100vh;          /* 设置高度为视口高度 */
-  box-sizing: border-box; /* 确保padding不会增加总高度 */
-  padding: 10px;         /* 内边距 */
-
+  height: calc(100vh - 20px);  /* 减去margin的空间 */
+  box-sizing: border-box;
+  
   .wave-ori,
   .wave-new {
     flex: 1;
@@ -588,9 +587,9 @@ const btnReturn = () => {
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
-    min-height: 0;      /* 允许容器缩小 */
     display: flex;
     flex-direction: column;
+    min-height: 0;
   }
 }
 
@@ -598,9 +597,10 @@ const btnReturn = () => {
   line-height: 30px;
   color: #e96864;
   font-size: 20px;
-  margin: 0 auto 15px;
+  margin-bottom: 15px;
   font-weight: bold;
   text-align: center;
+  flex-shrink: 0;  /* 防止标题被压缩 */
 }
 
 .wave-graph {
@@ -609,10 +609,12 @@ const btnReturn = () => {
   padding: 10px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
+  flex-shrink: 0;  /* 防止波形图被压缩 */
 }
 
 .wave-text {
   flex: 1;
+  min-height: 150px;    /* 设置最小高度 */
   padding: 15px;
   border: 1px solid #ec8c8933;
   line-height: 1.6;
@@ -621,9 +623,8 @@ const btnReturn = () => {
   background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
   color: #e96864;
   font-size: 16px;
-  overflow-y: auto;     /* 添加垂直滚动条 */
-  min-height: 0;        /* 允许容器缩小 */
-
+  overflow-y: auto;
+  margin-bottom: 0;    /* 移除底部间距 */
   /* 自定义滚动条样式 */
   &::-webkit-scrollbar {
     width: 6px;
