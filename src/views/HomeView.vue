@@ -139,7 +139,9 @@ const btnConfig = () => {
     cursor: pointer;
     transition: all 0.3s ease;
     border: 1px solid #ec8c8933;
-
+    min-width: 200px; /* 添加最小宽度 */
+    text-align: center; /* 确保文字居中 */
+  
     &:hover {
       transform: translateY(-2px);
       background: linear-gradient(135deg, #ec8c8933, #ec8c8922);
