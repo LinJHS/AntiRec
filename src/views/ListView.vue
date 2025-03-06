@@ -430,7 +430,8 @@ const btnReturn = () => {
       <path fill="#CDF1F6"
         d="M236 112a68.07 68.07 0 0 1-68 68H61l27.52 27.51a12 12 0 0 1-17 17l-48-48a12 12 0 0 1 0-17l48-48a12 12 0 1 1 17 17L61 156h107a44 44 0 0 0 0-88H80a12 12 0 0 1 0-24h88a68.07 68.07 0 0 1 68 68Z" />
     </svg>
-    {{ $t('return') }} </div>
+    {{ $t('return') }}
+  </div>
 </template>
 
 <style scoped>
@@ -443,14 +444,18 @@ const btnReturn = () => {
 
 .left {
   width: 250px;
-  /* margin: 20px; */
-  padding: 15px;
+  padding: 15px 12px;  /* 修改左右内边距 */
+  padding-bottom: 70px;
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  /* border-radius: 20px; */
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
 
   .title {
+    margin: 10px 5px;  /* 调整标题边距 */
     color: #e96864;
     font-size: 24px;
     margin: 10px;
@@ -462,14 +467,41 @@ const btnReturn = () => {
   .subtitle {
     color: #e96864;
     font-size: 16px;
-    margin: 15px 10px;
+    margin: 15px 5px;  /* 调整副标题边距 */
     font-weight: bold;
   }
 
   .record-list {
-    margin: 10px;
+    margin: 10px 5px;  /* 调整列表边距 */
+    padding-right: 4px;  /* 微调滚动条间距 */
+    flex: 1;
+    /* 占据剩余空间 */
+    overflow-y: auto;
+    /* 添加垂直滚动条 */
+    overflow-x: hidden;
+    /* 隐藏水平滚动条 */
+
+    /* 自定义滚动条样式 */
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(236, 140, 137, 0.1);
+      border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(236, 140, 137, 0.2);
+      border-radius: 3px;
+
+      &:hover {
+        background: rgba(236, 140, 137, 0.3);
+      }
+    }
 
     .record-item {
+      margin-right: 2px;  /* 减小列表项右侧间距 */
       padding: 8px 15px;
       border: 1px solid #ec8c8933;
       line-height: 30px;
@@ -496,7 +528,7 @@ const btnReturn = () => {
       &.active {
         background: linear-gradient(135deg, #ec8c8944, #ec8c8933);
         border-color: #ec8c8955;
-        
+
         .record-text {
           color: #ec8c89;
           font-weight: bold;
@@ -551,45 +583,86 @@ const btnReturn = () => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  height: calc(100vh - 20px);
+  box-sizing: border-box;
 
   .wave-ori,
   .wave-new {
     flex: 1;
-    padding: 20px;
+    padding: 15px;
+    /* 减小整体内边距 */
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    gap: 10px;
+    /* 添加子元素间距 */
   }
 }
 
 .wave-title {
+  height: 30px;
   line-height: 30px;
   color: #e96864;
   font-size: 20px;
-  margin: 0 auto 15px;
+  margin: 0;
+  /* 移除margin */
   font-weight: bold;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .wave-graph {
-  height: 128px;
-  margin: 15px 0;
+  flex: 1;
+  margin: 0;
+  /* 移除margin */
   padding: 10px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
+  min-height: 80px;
 }
 
 .wave-text {
-  flex: 1;
-  padding: 15px;
+  height: 48px;        /* 减小固定高度，约3行文本 */
+  padding: 10px;       /* 减小内边距 */
   border: 1px solid #ec8c8933;
-  line-height: 1.6;
+  line-height: 1.2em;
   border-radius: 12px;
   position: relative;
   background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
   color: #e96864;
   font-size: 16px;
+  overflow-y: auto;
+  margin: 0;
+
+  > div:first-child {
+    max-height: 3.6em;  /* 限制最大显示3行 */
+    overflow-y: auto;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+
+  /* 自定义滚动条样式 */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(236, 140, 137, 0.1);
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(236, 140, 137, 0.2);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba(236, 140, 137, 0.3);
+    }
+  }
 
   .wave-text-border {
     position: absolute;
