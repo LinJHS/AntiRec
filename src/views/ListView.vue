@@ -444,6 +444,7 @@ const btnReturn = () => {
 .left {
   width: 250px;
   padding: 15px;
+  padding-bottom: 70px;  /* 为返回按钮预留空间 */
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
