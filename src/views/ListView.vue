@@ -617,14 +617,14 @@ const btnReturn = () => {
   height: 72px;        /* 固定文本区域高度，约4行文本 */
   padding: 15px;
   border: 1px solid #ec8c8933;
-  line-height: 1.2em;  /* 调整行高 */
+  line-height: 1.2em;
   border-radius: 12px;
   position: relative;
   background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
   color: #e96864;
   font-size: 16px;
   overflow-y: auto;
-  margin: 15px 0 0 0;  /* 移除底部间距 */
+  margin: 15px 0 5px 0;  /* 修改底部间距为5px */
 
   > div:first-child {
     max-height: 4.8em;  /* 限制最大显示4行 */
