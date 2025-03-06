@@ -628,8 +628,8 @@ const btnReturn = () => {
 }
 
 .wave-text {
-  height: 72px;
-  padding: 15px;
+  height: 48px;        /* 减小固定高度，约3行文本 */
+  padding: 10px;       /* 减小内边距 */
   border: 1px solid #ec8c8933;
   line-height: 1.2em;
   border-radius: 12px;
@@ -639,11 +639,9 @@ const btnReturn = () => {
   font-size: 16px;
   overflow-y: auto;
   margin: 0;
-  /* 移除margin */
 
-  >div:first-child {
-    max-height: 4.8em;
-    /* 限制最大显示4行 */
+  > div:first-child {
+    max-height: 3.6em;  /* 限制最大显示3行 */
     overflow-y: auto;
     word-break: break-word;
     white-space: pre-wrap;
