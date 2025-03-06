@@ -576,7 +576,7 @@ const btnReturn = () => {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  height: calc(100vh - 20px);  /* 减去margin的空间 */
+  height: calc(100vh - 20px);
   box-sizing: border-box;
   
   .wave-ori,
@@ -594,47 +594,43 @@ const btnReturn = () => {
 }
 
 .wave-title {
+  height: 30px;         /* 固定标题高度 */
   line-height: 30px;
   color: #e96864;
   font-size: 20px;
   margin-bottom: 15px;
   font-weight: bold;
   text-align: center;
-  flex-shrink: 0;  /* 防止标题被压缩 */
+  flex-shrink: 0;
 }
 
 .wave-graph {
-  height: 128px;
+  flex: 1;             /* 让波形图占据剩余空间 */
   margin: 15px 0;
   padding: 10px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  flex-shrink: 0;  /* 防止波形图被压缩 */
+  min-height: 80px;    /* 设置最小高度 */
 }
 
 .wave-text {
-  flex: 1;
-  min-height: 100px;
-  max-width: 100%;      /* 限制最大宽度 */
+  height: 72px;        /* 固定文本区域高度，约4行文本 */
   padding: 15px;
   border: 1px solid #ec8c8933;
-  line-height: 1.6;
+  line-height: 1.2em;  /* 调整行高 */
   border-radius: 12px;
   position: relative;
   background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
   color: #e96864;
   font-size: 16px;
   overflow-y: auto;
-  margin: 15px 0;
-  display: flex;
-  flex-direction: column;
+  margin: 15px 0 0 0;  /* 移除底部间距 */
 
   > div:first-child {
-    flex: 1;
+    max-height: 4.8em;  /* 限制最大显示4行 */
     overflow-y: auto;
-    word-break: normal;  /* 改用正常的换行规则 */
-    white-space: normal; /* 改用正常的空格处理 */
-    width: 100%;        /* 确保文本容器不会超出父容器 */
+    word-break: break-word;
+    white-space: pre-wrap;
   }
 
   /* 自定义滚动条样式 */
