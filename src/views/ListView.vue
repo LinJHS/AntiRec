@@ -477,6 +477,7 @@ const btnReturn = () => {
 
   .record-list {
     margin: 10px;
+    padding-right: 10px;  /* 添加右侧内边距，为滚动条留出空间 */
     flex: 1;
     /* 占据剩余空间 */
     overflow-y: auto;
@@ -504,6 +505,7 @@ const btnReturn = () => {
     }
 
     .record-item {
+      margin-right: 4px;  /* 列表项右侧也留出一点间距 */
       padding: 8px 15px;
       border: 1px solid #ec8c8933;
       line-height: 30px;
