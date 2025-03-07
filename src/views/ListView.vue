@@ -726,10 +726,10 @@ const btnReturn = () => {
     box-shadow: 0 4px 20px #ec8c8922;
     color: #ec8c89;
     border-color: #ec8c8955;
-  }
 
-  svg {
-    fill: currentColor;
+    svg {
+      fill: #ec8c89;  /* hover 时的颜色 */
+    }
   }
 }
 </style>
