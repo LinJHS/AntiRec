@@ -1,26 +1,35 @@
-pub fn analyze_audio(audio_data: &[f32], sample_rate: u32) -> Vec<f32> {
-    let window_size = 1024;
-    let step_size = window_size / 2;
-    let mut spectrogram = Vec::new();
+use std::f32::consts::PI;
 
-    for i in (0..audio_data.len() - window_size).step_by(step_size) {
-        let window = &audio_data[i..i + window_size];
-        let mut fft = vec![0.0; window_size];
+pub fn analyze_audio(samples: &[f32], sample_rate: u32) -> (f32, f32) {
+    let mut rms = 0.0;
+    let mut spectral_centroid = 0.0;
+    let mut total_magnitude = 0.0;
 
-        for j in 0..window_size {
-            fft[j] = window[j] * ((j as f32 / window_size as f32).sin());
-        }
+    for &sample in samples {
+        rms += sample * sample;
+    }
+    rms = (rms / samples.len() as f32).sqrt();
 
-        let mut magnitudes = Vec::new();
-        for j in 0..window_size / 2 {
-            let re = fft[j];
-            let im = fft[j + window_size / 2];
-            let magnitude = (re * re + im * im).sqrt();
-            magnitudes.push(magnitude);
-        }
+    let fft_size = samples.len();
+    let mut fft_output = vec![0.0; fft_size];
+    let mut fft_input: Vec<_> = samples.iter().map(|&x| x as f64).collect();
 
-        spectrogram.extend(magnitudes);
+    // Perform FFT
+    let mut planner = rustfft::FftPlanner::new();
+    let fft = planner.plan_fft_forward(fft_size);
+    fft.process(&mut fft_input, &mut fft_output);
+
+    for (i, &magnitude) in fft_output.iter().enumerate() {
+        let frequency = i as f32 * sample_rate as f32 / fft_size as f32;
+        spectral_centroid += frequency * magnitude;
+        total_magnitude += magnitude;
     }
 
-    spectrogram
+    if total_magnitude > 0.0 {
+        spectral_centroid /= total_magnitude;
+    } else {
+        spectral_centroid = 0.0;
+    }
+
+    (rms, spectral_centroid)
 }
