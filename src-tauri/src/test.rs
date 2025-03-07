@@ -1,61 +1,68 @@
 use std::f32::consts::PI;
 use std::sync::Arc;
-use rayon::prelude::*;
+use std::thread;
+use std::time::Duration;
 
-#[derive(Clone)]
-struct AudioBuffer {
-    samples: Arc<Vec<f32>>,
+pub struct AudioProcessor {
     sample_rate: u32,
+    buffer_size: usize
 }
 
-impl AudioBuffer {
-    fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
-        Self {
-            samples: Arc::new(samples),
-            sample_rate,
+impl AudioProcessor {
+    pub fn new(sample_rate: u32, buffer_size: usize) -> Self {
+        AudioProcessor { sample_rate, buffer_size }
+    }
+
+    pub fn process_audio(&self, input: &[f32]) -> Vec<f32> {
+        let mut output = Vec::with_capacity(input.len());
+        for &sample in input {
+            let distorted_sample = self.add_disturbance(sample);
+            output.push(self.improve_efficiency(distorted_sample));
+        }
+        output
+    }
+
+    fn add_disturbance(&self, sample: f32) -> f32 {
+        let noise = (2.0 * PI * 440.0 * sample / self.sample_rate as f32).sin() * 0.1;
+        sample + noise
+    }
+
+    fn improve_efficiency(&self, sample: f32) -> f32 {
+        sample * 0.9
+    }
+
+    pub fn parallel_process(&self, input: Arc<Vec<f32>>) -> Vec<f32> {
+        let mut handles = vec![];
+        let chunk_size = self.buffer_size / 4;
+        
+        for chunk in input.chunks(chunk_size) {
+            let chunk = chunk.to_vec();
+            let processor = self.clone();
+            handles.push(thread::spawn(move || {
+                processor.process_audio(&chunk)
+            }));
+        }
+
+        let mut output = Vec::with_capacity(input.len());
+        for handle in handles {
+            output.extend(handle.join().unwrap());
+        }
+        output
+    }
+}
+
+impl Clone for AudioProcessor {
+    fn clone(&self) -> Self {
+        AudioProcessor {
+            sample_rate: self.sample_rate,
+            buffer_size: self.buffer_size
         }
     }
-
-    fn add_disturbance(&self, frequency: f32, amplitude: f32) -> Self {
-        let mut disturbed_samples = Vec::with_capacity(self.samples.len());
-        let phase_step = 2.0 * PI * frequency / self.sample_rate as f32;
-
-        self.samples.par_iter().enumerate().for_each(|(i, &sample)| {
-            let phase = phase_step * i as f32;
-            let disturbance = amplitude * phase.sin();
-            disturbed_samples.push(sample + disturbance);
-        });
-
-        AudioBuffer::new(disturbed_samples, self.sample_rate)
-    }
-
-    fn apply_low_pass_filter(&self, cutoff_frequency: f32) -> Self {
-        let rc = 1.0 / (2.0 * PI * cutoff_frequency);
-        let dt = 1.0 / self.sample_rate as f32;
-        let alpha = dt / (rc + dt);
-
-        let mut filtered_samples = Vec::with_capacity(self.samples.len());
-        let mut prev_sample = 0.0;
-
-        self.samples.iter().for_each(|&sample| {
-            let filtered_sample = prev_sample + alpha * (sample - prev_sample);
-            filtered_samples.push(filtered_sample);
-            prev_sample = filtered_sample;
-        });
-
-        AudioBuffer::new(filtered_samples, self.sample_rate)
-    }
-
-    fn rms(&self) -> f32 {
-        let sum_squares: f32 = self.samples.par_iter().map(|&s| s * s).sum();
-        (sum_squares / self.samples.len() as f32).sqrt()
-    }
 }
 
-fn main() {
-    let audio_buffer = AudioBuffer::new(vec![0.0; 44100], 44100);
-    let disturbed = audio_buffer.add_disturbance(1000.0, 0.1);
-    let filtered = disturbed.apply_low_pass_filter(500.0);
-    let rms = filtered.rms();
-    println!("RMS: {}", rms);
+pub fn run_audio_processing() {
+    let processor = AudioProcessor::new(44100, 1024);
+    let input = Arc::new(vec![0.0; 1024]);
+    let output = processor.parallel_process(input);
+    println!("Processed audio output: {:?}", output);
 }
