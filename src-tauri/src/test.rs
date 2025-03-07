@@ -1,38 +1,40 @@
-use std::fs::File;
-use std::io::Read;
-use std::path::Path;
-use hound::{WavReader, SampleFormat};
-use rustfft::{FftPlanner, num_complex::Complex};
+use std::f32::consts::PI;
 
-pub fn analyze_audio(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let path = Path::new(file_path);
-    let mut file = File::open(path)?;
-    let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer)?;
+pub fn analyze_audio(data: &[f32]) -> (f32, f32, f32) {
+    let sum: f32 = data.iter().sum();
+    let mean = sum / data.len() as f32;
 
-    let reader = WavReader::new(&buffer[..])?;
-    let spec = reader.spec();
+    let variance: f32 = data.iter().map(|&x| (x - mean).powi(2)).sum::<f32>() / data.len() as f32;
+    let std_dev = variance.sqrt();
 
-    let samples: Vec<f32> = match spec.sample_format {
-        SampleFormat::Int => reader.into_samples::<i32>()
-            .map(|s| s.unwrap() as f32 / i32::MAX as f32)
-            .collect(),
-        SampleFormat::Float => reader.into_samples::<f32>()
-            .map(|s| s.unwrap())
-            .collect(),
-    };
+    let max_amplitude = data.iter().fold(f32::NEG_INFINITY, |a, &b| a.max(b));
 
-    let mut planner = FftPlanner::new();
-    let fft = planner.plan_fft_forward(samples.len());
+    (mean, std_dev, max_amplitude)
+}
 
-    let mut complex_samples: Vec<Complex<f32>> = samples
-        .into_iter()
-        .map(|s| Complex::new(s, 0.0))
-        .collect();
+pub fn dominant_frequency(data: &[f32], sample_rate: f32) -> f32 {
+    let n = data.len();
+    let mut magnitudes: Vec<f32> = vec![0.0; n];
 
-    fft.process(&mut complex_samples);
+    for k in 0..n {
+        let mut sum_real = 0.0;
+        let mut sum_imag = 0.0;
 
-    // Further analysis can be performed on the complex_samples here
+        for t in 0..n {
+            let angle = 2.0 * PI * (k as f32) * (t as f32) / (n as f32);
+            sum_real += data[t] * angle.cos();
+            sum_imag -= data[t] * angle.sin();
+        }
 
-    Ok(())
+        magnitudes[k] = (sum_real.powi(2) + sum_imag.powi(2)).sqrt();
+    }
+
+    let max_index = magnitudes
+        .iter()
+        .enumerate()
+        .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+        .map(|(index, _)| index)
+        .unwrap_or(0);
+
+    (max_index as f32 * sample_rate) / (n as f32)
 }
