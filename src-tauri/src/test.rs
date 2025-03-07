@@ -1,56 +1,26 @@
-use std::f32::consts::PI;
+pub fn analyze_audio(audio_data: &[f32], sample_rate: u32) -> Vec<f32> {
+    let window_size = 1024;
+    let step_size = window_size / 2;
+    let mut spectrogram = Vec::new();
 
-pub fn analyze_audio(samples: &[f32]) -> (f32, f32) {
-    let mut sum = 0.0;
-    let mut sum_of_squares = 0.0;
+    for i in (0..audio_data.len() - window_size).step_by(step_size) {
+        let window = &audio_data[i..i + window_size];
+        let mut fft = vec![0.0; window_size];
 
-    for &sample in samples {
-        sum += sample;
-        sum_of_squares += sample * sample;
-    }
-
-    let mean = sum / samples.len() as f32;
-    let rms = (sum_of_squares / samples.len() as f32).sqrt();
-
-    (mean, rms)
-}
-
-pub fn calculate_frequency(samples: &[f32], sample_rate: u32) -> f32 {
-    let mut max_correlation = 0.0;
-    let mut best_period = 0;
-
-    for period in 1..samples.len() / 2 {
-        let mut correlation = 0.0;
-        for i in 0..samples.len() - period {
-            correlation += samples[i] * samples[i + period];
+        for j in 0..window_size {
+            fft[j] = window[j] * ((j as f32 / window_size as f32).sin());
         }
-        if correlation > max_correlation {
-            max_correlation = correlation;
-            best_period = period;
+
+        let mut magnitudes = Vec::new();
+        for j in 0..window_size / 2 {
+            let re = fft[j];
+            let im = fft[j + window_size / 2];
+            let magnitude = (re * re + im * im).sqrt();
+            magnitudes.push(magnitude);
         }
+
+        spectrogram.extend(magnitudes);
     }
 
-    if best_period == 0 {
-        return 0.0;
-    }
-
-    sample_rate as f32 / best_period as f32
-}
-
-pub fn apply_fft(samples: &[f32]) -> Vec<f32> {
-    let n = samples.len();
-    let mut spectrum = vec![0.0; n];
-
-    for k in 0..n {
-        let mut real = 0.0;
-        let mut imag = 0.0;
-        for t in 0..n {
-            let angle = 2.0 * PI * (k as f32) * (t as f32) / (n as f32);
-            real += samples[t] * angle.cos();
-            imag -= samples[t] * angle.sin();
-        }
-        spectrum[k] = (real * real + imag * imag).sqrt();
-    }
-
-    spectrum
+    spectrogram
 }
