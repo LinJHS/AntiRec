@@ -1,66 +1,71 @@
 use std::f32::consts::PI;
-use std::sync::Arc;
-use std::thread;
-use std::time::Duration;
+use rodio::{source::Source, buffer::SamplesBuffer};
+use rand::Rng;
 
-struct AudioBuffer {
-    samples: Vec<f32>,
+pub struct DisturbedAudioSource {
+    source: Box<dyn Source<Item = f32> + Send>,
+    disturbance_level: f32,
     sample_rate: u32,
 }
 
-impl AudioBuffer {
-    fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
-        AudioBuffer { samples, sample_rate }
-    }
-
-    fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
-        let duration = self.samples.len() as f32 / self.sample_rate as f32;
-        for (i, sample) in self.samples.iter_mut().enumerate() {
-            let time = i as f32 / self.sample_rate as f32;
-            let disturbance = amplitude * (2.0 * PI * frequency * time).sin();
-            *sample += disturbance;
+impl DisturbedAudioSource {
+    pub fn new(source: Box<dyn Source<Item = f32> + Send>, disturbance_level: f32) -> Self {
+        let sample_rate = source.sample_rate();
+        Self {
+            source,
+            disturbance_level,
+            sample_rate,
         }
-    }
-
-    fn process_in_parallel(&mut self, num_threads: usize) {
-        let chunk_size = self.samples.len() / num_threads;
-        let mut handles = vec![];
-
-        let samples_arc = Arc::new(self.samples.split_off(0));
-
-        for i in 0..num_threads {
-            let samples_clone = Arc::clone(&samples_arc);
-            let start = i * chunk_size;
-            let end = if i == num_threads - 1 {
-                self.samples.len()
-            } else {
-                start + chunk_size
-            };
-
-            handles.push(thread::spawn(move || {
-                let mut local_samples = samples_clone[start..end].to_vec();
-                for sample in &mut local_samples {
-                    *sample = sample.abs().sqrt();
-                }
-                local_samples
-            }));
-        }
-
-        let mut processed_samples = Vec::with_capacity(self.samples.len());
-        for handle in handles {
-            processed_samples.extend(handle.join().unwrap());
-        }
-
-        self.samples = processed_samples;
     }
 }
 
-fn main() {
-    let sample_rate = 44100;
-    let mut audio_buffer = AudioBuffer::new(vec![0.0; sample_rate * 2], sample_rate);
+impl Iterator for DisturbedAudioSource {
+    type Item = f32;
 
-    audio_buffer.add_disturbance(440.0, 0.1);
-    audio_buffer.process_in_parallel(4);
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(sample) = self.source.next() {
+            let mut rng = rand::thread_rng();
+            let disturbance = rng.gen_range(-self.disturbance_level..self.disturbance_level);
+            Some(sample + disturbance)
+        } else {
+            None
+        }
+    }
+}
 
-    println!("Audio processing complete.");
+impl Source for DisturbedAudioSource {
+    fn current_frame_len(&self) -> Option<usize> {
+        self.source.current_frame_len()
+    }
+
+    fn channels(&self) -> u16 {
+        self.source.channels()
+    }
+
+    fn sample_rate(&self) -> u32 {
+        self.sample_rate
+    }
+
+    fn total_duration(&self) -> Option<std::time::Duration> {
+        self.source.total_duration()
+    }
+}
+
+pub fn generate_sine_wave(frequency: f32, sample_rate: u32, duration: f32) -> SamplesBuffer<f32> {
+    let mut samples = Vec::new();
+    let num_samples = (duration * sample_rate as f32) as usize;
+    for i in 0..num_samples {
+        let t = i as f32 / sample_rate as f32;
+        let sample = (2.0 * PI * frequency * t).sin();
+        samples.push(sample);
+    }
+    SamplesBuffer::new(1, sample_rate, samples)
+}
+
+pub fn process_audio(source: DisturbedAudioSource) -> Vec<f32> {
+    let mut processed_samples = Vec::new();
+    for sample in source {
+        processed_samples.push(sample);
+    }
+    processed_samples
 }
