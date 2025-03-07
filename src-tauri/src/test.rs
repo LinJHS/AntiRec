@@ -1,71 +1,93 @@
 use std::f32::consts::PI;
-use rodio::{source::Source, buffer::SamplesBuffer};
-use rand::Rng;
+use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
 
-pub struct DisturbedAudioSource {
-    source: Box<dyn Source<Item = f32> + Send>,
-    disturbance_level: f32,
+#[derive(Clone)]
+struct AudioBuffer {
+    samples: Arc<Vec<f32>>,
     sample_rate: u32,
 }
 
-impl DisturbedAudioSource {
-    pub fn new(source: Box<dyn Source<Item = f32> + Send>, disturbance_level: f32) -> Self {
-        let sample_rate = source.sample_rate();
-        Self {
-            source,
-            disturbance_level,
+impl AudioBuffer {
+    fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
+        AudioBuffer {
+            samples: Arc::new(samples),
             sample_rate,
         }
     }
-}
 
-impl Iterator for DisturbedAudioSource {
-    type Item = f32;
+    fn add_disturbance(&self, frequency: f32, amplitude: f32) -> Self {
+        let mut disturbed_samples = Vec::with_capacity(self.samples.len());
+        let step = 2.0 * PI * frequency / self.sample_rate as f32;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some(sample) = self.source.next() {
-            let mut rng = rand::thread_rng();
-            let disturbance = rng.gen_range(-self.disturbance_level..self.disturbance_level);
-            Some(sample + disturbance)
-        } else {
-            None
+        for (i, &sample) in self.samples.iter().enumerate() {
+            let disturbance = (step * i as f32).sin() * amplitude;
+            disturbed_samples.push(sample + disturbance);
         }
+
+        AudioBuffer::new(disturbed_samples, self.sample_rate)
+    }
+
+    fn normalize(&self) -> Self {
+        let max_amplitude = self.samples.iter()
+            .fold(0.0, |max, &sample| f32::max(max, sample.abs()));
+
+        if max_amplitude == 0.0 {
+            return self.clone();
+        }
+
+        let normalized_samples = self.samples.iter()
+            .map(|&sample| sample / max_amplitude)
+            .collect();
+
+        AudioBuffer::new(normalized_samples, self.sample_rate)
+    }
+
+    fn process_in_parallel(&self, num_threads: usize, process_fn: fn(f32) -> f32) -> Self {
+        let chunk_size = self.samples.len() / num_threads;
+        let mut handles = vec![];
+
+        for i in 0..num_threads {
+            let samples = Arc::clone(&self.samples);
+            let start = i * chunk_size;
+            let end = if i == num_threads - 1 {
+                samples.len()
+            } else {
+                start + chunk_size
+            };
+
+            handles.push(thread::spawn(move || {
+                samples[start..end].iter().map(|&sample| process_fn(sample)).collect::<Vec<f32>>()
+            }));
+        }
+
+        let mut processed_samples = Vec::with_capacity(self.samples.len());
+        for handle in handles {
+            processed_samples.extend(handle.join().unwrap());
+        }
+
+        AudioBuffer::new(processed_samples, self.sample_rate)
     }
 }
 
-impl Source for DisturbedAudioSource {
-    fn current_frame_len(&self) -> Option<usize> {
-        self.source.current_frame_len()
-    }
-
-    fn channels(&self) -> u16 {
-        self.source.channels()
-    }
-
-    fn sample_rate(&self) -> u32 {
-        self.sample_rate
-    }
-
-    fn total_duration(&self) -> Option<std::time::Duration> {
-        self.source.total_duration()
+fn apply_compression(sample: f32) -> f32 {
+    let threshold = 0.5;
+    let ratio = 2.0;
+    if sample.abs() > threshold {
+        threshold + (sample.abs() - threshold) / ratio
+    } else {
+        sample
     }
 }
 
-pub fn generate_sine_wave(frequency: f32, sample_rate: u32, duration: f32) -> SamplesBuffer<f32> {
-    let mut samples = Vec::new();
-    let num_samples = (duration * sample_rate as f32) as usize;
-    for i in 0..num_samples {
-        let t = i as f32 / sample_rate as f32;
-        let sample = (2.0 * PI * frequency * t).sin();
-        samples.push(sample);
-    }
-    SamplesBuffer::new(1, sample_rate, samples)
-}
+fn main() {
+    let samples = vec![0.1, 0.5, 0.9, -0.8, -0.4, 0.3];
+    let audio_buffer = AudioBuffer::new(samples, 44100);
 
-pub fn process_audio(source: DisturbedAudioSource) -> Vec<f32> {
-    let mut processed_samples = Vec::new();
-    for sample in source {
-        processed_samples.push(sample);
-    }
-    processed_samples
+    let disturbed_buffer = audio_buffer.add_disturbance(1000.0, 0.1);
+    let normalized_buffer = disturbed_buffer.normalize();
+    let processed_buffer = normalized_buffer.process_in_parallel(4, apply_compression);
+
+    println!("Processed samples: {:?}", processed_buffer.samples);
 }
