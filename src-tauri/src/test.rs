@@ -1,34 +1,39 @@
 use std::f32::consts::PI;
 
-pub fn analyze_audio(samples: &[f32], sample_rate: u32) -> (f32, f32) {
-    let mut rms = 0.0;
-    let mut spectral_centroid = 0.0;
-    let mut total_magnitude = 0.0;
+fn analyze_audio(samples: &[f32]) -> Vec<f32> {
+    let window_size = 1024;
+    let hop_size = 512;
+    let mut spectrum = vec![0.0; window_size / 2];
 
-    for &sample in samples {
-        rms += sample * sample;
-    }
-    rms = (rms / samples.len() as f32).sqrt();
+    for i in (0..samples.len() - window_size).step_by(hop_size) {
+        let window = &samples[i..i + window_size];
+        let mut windowed_samples = window.to_vec();
 
-    let fft_size = samples.len();
-    let mut fft_output = vec![0.0; fft_size];
-    let mut fft_input: Vec<_> = samples.iter().map(|&x| x as f64).collect();
+        // Apply Hann window
+        for j in 0..window_size {
+            let hann = 0.5 * (1.0 - (2.0 * PI * j as f32 / (window_size as f32 - 1.0)).cos());
+            windowed_samples[j] *= hann;
+        }
 
-    // Perform FFT
-    let mut planner = rustfft::FftPlanner::new();
-    let fft = planner.plan_fft_forward(fft_size);
-    fft.process(&mut fft_input);
+        // Perform FFT (assuming a real FFT function exists)
+        let fft_result = real_fft(&windowed_samples);
 
-    for (i, &bin) in fft_input.iter().enumerate() {
-        let magnitude = bin.abs() as f32;
-        let frequency = i as f32 * sample_rate as f32 / fft_size as f32;
-        spectral_centroid += frequency * magnitude;
-        total_magnitude += magnitude;
+        // Accumulate the magnitude spectrum
+        for j in 0..spectrum.len() {
+            spectrum[j] += fft_result[j].norm();
+        }
     }
 
-    if total_magnitude > 0.0 {
-        spectral_centroid /= total_magnitude;
+    // Normalize the spectrum
+    let num_windows = ((samples.len() - window_size) / hop_size) as f32;
+    for val in &mut spectrum {
+        *val /= num_windows;
     }
 
-    (rms, spectral_centroid)
+    spectrum
+}
+
+fn real_fft(samples: &[f32]) -> Vec<f32> {
+    // Placeholder for an actual FFT implementation
+    samples.iter().map(|&x| x * x).collect()
 }
