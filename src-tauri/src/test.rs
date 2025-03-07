@@ -1,23 +1,35 @@
-use rustfft::{Fft, FftPlanner, num_complex::Complex};
 use std::f32::consts::PI;
 
-pub fn analyze_audio(samples: &[f32], sample_rate: usize) -> Vec<f32> {
-    let mut planner = FftPlanner::new();
-    let fft = planner.plan_fft_forward(samples.len());
-    
-    let mut spectrum: Vec<Complex<f32>> = samples.iter()
-        .map(|&x| Complex::new(x, 0.0))
-        .collect();
-    
-    fft.process(&mut spectrum);
+pub fn analyze_audio(samples: &[f32], sample_rate: u32) -> (f32, f32) {
+    let mut rms = 0.0;
+    let mut spectral_centroid = 0.0;
+    let mut total_magnitude = 0.0;
 
-    let magnitudes: Vec<f32> = spectrum.iter()
-        .map(|c| c.norm())
-        .collect();
+    for &sample in samples {
+        rms += sample * sample;
+    }
+    rms = (rms / samples.len() as f32).sqrt();
 
-    let freq_bins: Vec<f32> = (0..magnitudes.len()).map(|i| {
-        i as f32 * sample_rate as f32 / samples.len() as f32
-    }).collect();
+    let fft_size = samples.len();
+    let mut fft_output = vec![0.0; fft_size];
+    let mut fft_input: Vec<_> = samples.iter().map(|&x| x as f64).collect();
 
-    magnitudes
+    // Perform FFT
+    let mut planner = rustfft::FftPlanner::new();
+    let fft = planner.plan_fft_forward(fft_size);
+    fft.process(&mut fft_input, &mut fft_output);
+
+    for (i, &magnitude) in fft_output.iter().enumerate() {
+        let frequency = i as f32 * sample_rate as f32 / fft_size as f32;
+        spectral_centroid += frequency * magnitude;
+        total_magnitude += magnitude;
+    }
+
+    if total_magnitude > 0.0 {
+        spectral_centroid /= total_magnitude;
+    } else {
+        spectral_centroid = 0.0;
+    }
+
+    (rms, spectral_centroid)
 }
