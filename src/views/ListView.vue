@@ -427,7 +427,7 @@ const btnReturn = () => {
   </div>
   <div class="return" @click="btnReturn">
     <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 256 256">
-      <path fill="#CDF1F6"
+      <path fill="#e96864"
         d="M236 112a68.07 68.07 0 0 1-68 68H61l27.52 27.51a12 12 0 0 1-17 17l-48-48a12 12 0 0 1 0-17l48-48a12 12 0 1 1 17 17L61 156h107a44 44 0 0 0 0-88H80a12 12 0 0 1 0-24h88a68.07 68.07 0 0 1 68 68Z" />
     </svg>
     {{ $t('return') }}
