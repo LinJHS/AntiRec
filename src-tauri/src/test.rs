@@ -1,68 +1,61 @@
-use std::f32::consts::PI;
+use rayon::prelude::*;
+use rodio::{source::Source, Decoder, OutputStream, Sink};
+use std::fs::File;
+use std::io::BufReader;
 use std::sync::Arc;
-use std::thread;
 use std::time::Duration;
 
-pub struct AudioProcessor {
-    sample_rate: u32,
-    buffer_size: usize
+pub fn process_audio(file_path: &str, disturbance_level: f32) -> Result<(), Box<dyn std::error::Error>> {
+    // Load the audio file
+    let file = File::open(file_path)?;
+    let source = Decoder::new(BufReader::new(file))?;
+
+    // Convert the source to a vector of samples for parallel processing
+    let samples: Vec<f32> = source.convert_samples().collect();
+    let samples = Arc::new(samples);
+
+    // Apply disturbance to the audio samples in parallel
+    let disturbed_samples: Vec<f32> = samples
+        .par_iter()
+        .map(|&sample| {
+            let disturbance = (rand::random::<f32>() - 0.5) * 2.0 * disturbance_level;
+            sample + disturbance
+        })
+        .collect();
+
+    // Create a new audio source from the processed samples
+    let processed_source = rodio::buffer::SamplesBuffer::new(1, 44100, disturbed_samples);
+
+    // Play the processed audio
+    let (_stream, stream_handle) = OutputStream::try_default()?;
+    let sink = Sink::try_new(&stream_handle)?;
+    sink.append(processed_source);
+    sink.sleep_until_end();
+
+    Ok(())
 }
 
-impl AudioProcessor {
-    pub fn new(sample_rate: u32, buffer_size: usize) -> Self {
-        AudioProcessor { sample_rate, buffer_size }
-    }
+pub fn optimize_audio_processing(file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    // Load the audio file
+    let file = File::open(file_path)?;
+    let source = Decoder::new(BufReader::new(file))?;
 
-    pub fn process_audio(&self, input: &[f32]) -> Vec<f32> {
-        let mut output = Vec::with_capacity(input.len());
-        for &sample in input {
-            let distorted_sample = self.add_disturbance(sample);
-            output.push(self.improve_efficiency(distorted_sample));
-        }
-        output
-    }
+    // Efficiently downsample the audio by a factor of 2
+    let downsampled_samples: Vec<f32> = source
+        .convert_samples()
+        .enumerate()
+        .filter(|(i, _)| i % 2 == 0)
+        .map(|(_, sample)| sample)
+        .collect();
 
-    fn add_disturbance(&self, sample: f32) -> f32 {
-        let noise = (2.0 * PI * 440.0 * sample / self.sample_rate as f32).sin() * 0.1;
-        sample + noise
-    }
+    // Create a new audio source from the downsampled samples
+    let downsampled_source = rodio::buffer::SamplesBuffer::new(1, 22050, downsampled_samples);
 
-    fn improve_efficiency(&self, sample: f32) -> f32 {
-        sample * 0.9
-    }
+    // Play the downsampled audio
+    let (_stream, stream_handle) = OutputStream::try_default()?;
+    let sink = Sink::try_new(&stream_handle)?;
+    sink.append(downsampled_source);
+    sink.sleep_until_end();
 
-    pub fn parallel_process(&self, input: Arc<Vec<f32>>) -> Vec<f32> {
-        let mut handles = vec![];
-        let chunk_size = self.buffer_size / 4;
-        
-        for chunk in input.chunks(chunk_size) {
-            let chunk = chunk.to_vec();
-            let processor = self.clone();
-            handles.push(thread::spawn(move || {
-                processor.process_audio(&chunk)
-            }));
-        }
-
-        let mut output = Vec::with_capacity(input.len());
-        for handle in handles {
-            output.extend(handle.join().unwrap());
-        }
-        output
-    }
-}
-
-impl Clone for AudioProcessor {
-    fn clone(&self) -> Self {
-        AudioProcessor {
-            sample_rate: self.sample_rate,
-            buffer_size: self.buffer_size
-        }
-    }
-}
-
-pub fn run_audio_processing() {
-    let processor = AudioProcessor::new(44100, 1024);
-    let input = Arc::new(vec![0.0; 1024]);
-    let output = processor.parallel_process(input);
-    println!("Processed audio output: {:?}", output);
+    Ok(())
 }
