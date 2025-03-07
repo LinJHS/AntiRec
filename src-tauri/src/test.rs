@@ -1,17 +1,6 @@
-use rustfft::{FftPlanner, num_complex::Complex};
-use std::f32::consts::PI;
-
-pub fn analyze_audio(samples: &[f32]) -> Vec<f32> {
-    let mut planner = FftPlanner::new();
-    let fft = planner.plan_fft_forward(samples.len());
-
-    let mut buffer: Vec<Complex<f32>> = samples.iter()
-        .map(|&x| Complex::new(x, 0.0))
-        .collect();
-
-    fft.process(&mut buffer);
-
-    buffer.iter()
-        .map(|c| c.norm())
-        .collect()
+pub fn analyze_audio(audio_data: &[f32]) -> (f32, f32) {
+    let sum: f32 = audio_data.iter().sum();
+    let mean = sum / audio_data.len() as f32;
+    let variance: f32 = audio_data.iter().map(|&x| (x - mean).powi(2)).sum() / audio_data.len() as f32;
+    (mean, variance.sqrt())
 }
