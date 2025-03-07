@@ -1,71 +1,48 @@
 use std::f32::consts::PI;
-use rodio::{source::Source, buffer::SamplesBuffer};
-use rand::Rng;
+use rayon::prelude::*;
 
-pub struct DisturbedAudioSource {
-    source: Box<dyn Source<Item = f32> + Send>,
-    disturbance_level: f32,
+pub struct AudioProcessor {
     sample_rate: u32,
+    buffer: Vec<f32>,
 }
 
-impl DisturbedAudioSource {
-    pub fn new(source: Box<dyn Source<Item = f32> + Send>, disturbance_level: f32) -> Self {
-        let sample_rate = source.sample_rate();
-        Self {
-            source,
-            disturbance_level,
-            sample_rate,
+impl AudioProcessor {
+    pub fn new(sample_rate: u32, buffer: Vec<f32>) -> Self {
+        AudioProcessor { sample_rate, buffer }
+    }
+
+    pub fn apply_disturbance(&mut self, frequency: f32, amplitude: f32) {
+        self.buffer.par_iter_mut().enumerate().for_each(|(i, sample)| {
+            let t = i as f32 / self.sample_rate as f32;
+            let disturbance = amplitude * (2.0 * PI * frequency * t).sin();
+            *sample += disturbance;
+        });
+    }
+
+    pub fn normalize(&mut self) {
+        let max_amplitude = self.buffer.par_iter()
+            .map(|&x| x.abs())
+            .reduce(|| 0.0, f32::max);
+
+        if max_amplitude > 0.0 {
+            self.buffer.par_iter_mut().for_each(|sample| {
+                *sample /= max_amplitude;
+            });
         }
     }
-}
 
-impl Iterator for DisturbedAudioSource {
-    type Item = f32;
+    pub fn low_pass_filter(&mut self, cutoff_frequency: f32) {
+        let rc = 1.0 / (2.0 * PI * cutoff_frequency);
+        let dt = 1.0 / self.sample_rate as f32;
+        let alpha = dt / (rc + dt);
 
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some(sample) = self.source.next() {
-            let mut rng = rand::thread_rng();
-            let disturbance = rng.gen_range(-self.disturbance_level..self.disturbance_level);
-            Some(sample + disturbance)
-        } else {
-            None
-        }
-    }
-}
-
-impl Source for DisturbedAudioSource {
-    fn current_frame_len(&self) -> Option<usize> {
-        self.source.current_frame_len()
+        self.buffer.iter_mut().fold(0.0, |prev, sample| {
+            *sample = prev + alpha * (*sample - prev);
+            *sample
+        });
     }
 
-    fn channels(&self) -> u16 {
-        self.source.channels()
+    pub fn get_buffer(&self) -> &Vec<f32> {
+        &self.buffer
     }
-
-    fn sample_rate(&self) -> u32 {
-        self.sample_rate
-    }
-
-    fn total_duration(&self) -> Option<std::time::Duration> {
-        self.source.total_duration()
-    }
-}
-
-pub fn generate_sine_wave(frequency: f32, sample_rate: u32, duration: f32) -> SamplesBuffer<f32> {
-    let mut samples = Vec::new();
-    let num_samples = (duration * sample_rate as f32) as usize;
-    for i in 0..num_samples {
-        let t = i as f32 / sample_rate as f32;
-        let sample = (2.0 * PI * frequency * t).sin();
-        samples.push(sample);
-    }
-    SamplesBuffer::new(1, sample_rate, samples)
-}
-
-pub fn process_audio(source: DisturbedAudioSource) -> Vec<f32> {
-    let mut processed_samples = Vec::new();
-    for sample in source {
-        processed_samples.push(sample);
-    }
-    processed_samples
 }
