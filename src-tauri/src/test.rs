@@ -37,29 +37,20 @@ pub fn calculate_frequency(samples: &[f32], sample_rate: u32) -> f32 {
     sample_rate as f32 / best_period as f32
 }
 
-pub fn apply_fft(samples: &mut [f32]) {
+pub fn apply_fft(samples: &[f32]) -> Vec<f32> {
     let n = samples.len();
-    if n <= 1 {
-        return;
-    }
+    let mut spectrum = vec![0.0; n];
 
-    let mut even = Vec::new();
-    let mut odd = Vec::new();
-
-    for i in 0..n {
-        if i % 2 == 0 {
-            even.push(samples[i]);
-        } else {
-            odd.push(samples[i]);
+    for k in 0..n {
+        let mut real = 0.0;
+        let mut imag = 0.0;
+        for t in 0..n {
+            let angle = 2.0 * PI * (k as f32) * (t as f32) / (n as f32);
+            real += samples[t] * angle.cos();
+            imag -= samples[t] * angle.sin();
         }
+        spectrum[k] = (real * real + imag * imag).sqrt();
     }
 
-    apply_fft(&mut even);
-    apply_fft(&mut odd);
-
-    for k in 0..n / 2 {
-        let t = (2.0 * PI * k as f32 / n as f32).cos() * odd[k] - (2.0 * PI * k as f32 / n as f32).sin() * even[k];
-        samples[k] = even[k] + t;
-        samples[k + n / 2] = even[k] - t;
-    }
+    spectrum
 }
