@@ -1,35 +1,5 @@
-use std::f32::consts::PI;
-
-pub fn analyze_audio(samples: &[f32], sample_rate: u32) -> (f32, f32) {
-    let mut rms = 0.0;
-    let mut spectral_centroid = 0.0;
-    let mut total_magnitude = 0.0;
-
-    for &sample in samples {
-        rms += sample * sample;
-    }
-    rms = (rms / samples.len() as f32).sqrt();
-
-    let fft_size = samples.len();
-    let mut fft_output = vec![0.0; fft_size];
-    let mut fft_input: Vec<_> = samples.iter().map(|&x| x as f64).collect();
-
-    // Perform FFT
-    let mut planner = rustfft::FftPlanner::new();
-    let fft = planner.plan_fft_forward(fft_size);
-    fft.process(&mut fft_input, &mut fft_output);
-
-    for (i, &magnitude) in fft_output.iter().enumerate() {
-        let frequency = i as f32 * sample_rate as f32 / fft_size as f32;
-        spectral_centroid += frequency * magnitude;
-        total_magnitude += magnitude;
-    }
-
-    if total_magnitude > 0.0 {
-        spectral_centroid /= total_magnitude;
-    } else {
-        spectral_centroid = 0.0;
-    }
-
-    (rms, spectral_centroid)
+pub fn analyze_audio(data: &[f32]) -> (f32, f32) {
+    let max_amplitude = data.iter().fold(0.0, |acc, &x| acc.max(x));
+    let rms = (data.iter().map(|&x| x * x).sum::<f32>() / data.len() as f32).sqrt();
+    (max_amplitude, rms)
 }
