@@ -1,5 +1,4 @@
 use std::f32::consts::PI;
-use rayon::prelude::*;
 
 pub struct AudioProcessor {
     sample_rate: u32,
@@ -7,42 +6,36 @@ pub struct AudioProcessor {
 }
 
 impl AudioProcessor {
-    pub fn new(sample_rate: u32, buffer: Vec<f32>) -> Self {
-        AudioProcessor { sample_rate, buffer }
-    }
-
-    pub fn apply_disturbance(&mut self, frequency: f32, amplitude: f32) {
-        self.buffer.par_iter_mut().enumerate().for_each(|(i, sample)| {
-            let t = i as f32 / self.sample_rate as f32;
-            let disturbance = amplitude * (2.0 * PI * frequency * t).sin();
-            *sample += disturbance;
-        });
-    }
-
-    pub fn normalize(&mut self) {
-        let max_amplitude = self.buffer.par_iter()
-            .map(|&x| x.abs())
-            .reduce(|| 0.0, f32::max);
-
-        if max_amplitude > 0.0 {
-            self.buffer.par_iter_mut().for_each(|sample| {
-                *sample /= max_amplitude;
-            });
+    pub fn new(sample_rate: u32) -> Self {
+        AudioProcessor {
+            sample_rate,
+            buffer: Vec::new(),
         }
     }
 
-    pub fn low_pass_filter(&mut self, cutoff_frequency: f32) {
-        let rc = 1.0 / (2.0 * PI * cutoff_frequency);
-        let dt = 1.0 / self.sample_rate as f32;
-        let alpha = dt / (rc + dt);
-
-        self.buffer.iter_mut().fold(0.0, |prev, sample| {
-            *sample = prev + alpha * (*sample - prev);
-            *sample
-        });
+    pub fn process_audio(&mut self, input: &[f32]) -> Vec<f32> {
+        self.buffer.clear();
+        self.buffer.extend(input.iter().map(|&sample| {
+            let disturbed_sample = self.add_disturbance(sample);
+            self.apply_low_pass_filter(disturbed_sample)
+        }));
+        self.buffer.clone()
     }
 
-    pub fn get_buffer(&self) -> &Vec<f32> {
-        &self.buffer
+    fn add_disturbance(&self, sample: f32) -> f32 {
+        let noise = (2.0 * PI * 440.0 * sample / self.sample_rate as f32).sin() * 0.1;
+        sample + noise
     }
+
+    fn apply_low_pass_filter(&self, sample: f32) -> f32 {
+        let alpha = 0.1;
+        let mut filtered_sample = 0.0;
+        filtered_sample = alpha * sample + (1.0 - alpha) * filtered_sample;
+        filtered_sample
+    }
+}
+
+pub fn optimize_audio_processing(input: &[f32], sample_rate: u32) -> Vec<f32> {
+    let mut processor = AudioProcessor::new(sample_rate);
+    processor.process_audio(input)
 }
