@@ -1,71 +1,55 @@
 use std::f32::consts::PI;
-use rodio::{source::Source, buffer::SamplesBuffer};
-use rand::Rng;
+use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
 
-pub struct DisturbedAudioSource {
-    source: Box<dyn Source<Item = f32> + Send>,
-    disturbance_level: f32,
+pub struct AudioProcessor {
     sample_rate: u32,
+    buffer_size: usize,
+    disturbance_level: f32,
 }
 
-impl DisturbedAudioSource {
-    pub fn new(source: Box<dyn Source<Item = f32> + Send>, disturbance_level: f32) -> Self {
-        let sample_rate = source.sample_rate();
-        Self {
-            source,
-            disturbance_level,
+impl AudioProcessor {
+    pub fn new(sample_rate: u32, buffer_size: usize, disturbance_level: f32) -> Self {
+        AudioProcessor {
             sample_rate,
+            buffer_size,
+            disturbance_level,
+        }
+    }
+
+    pub fn process_audio(&self, input: &[f32], output: &mut [f32]) {
+        let disturbance = self.disturbance_level * (2.0 * PI * 440.0 / self.sample_rate as f32).sin();
+        
+        for i in 0..self.buffer_size {
+            output[i] = input[i] + disturbance;
+        }
+    }
+
+    pub fn parallel_process(&self, input: Arc<Vec<f32>>, output: Arc<Vec<f32>>) {
+        let handles: Vec<_> = (0..4).map(|i| {
+            let input = Arc::clone(&input);
+            let output = Arc::clone(&output);
+            thread::spawn(move || {
+                let chunk_size = self.buffer_size / 4;
+                let start = i * chunk_size;
+                let end = start + chunk_size;
+                self.process_audio(&input[start..end], &mut output[start..end]);
+            })
+        }).collect();
+
+        for handle in handles {
+            handle.join().unwrap();
         }
     }
 }
 
-impl Iterator for DisturbedAudioSource {
-    type Item = f32;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some(sample) = self.source.next() {
-            let mut rng = rand::thread_rng();
-            let disturbance = rng.gen_range(-self.disturbance_level..self.disturbance_level);
-            Some(sample + disturbance)
-        } else {
-            None
-        }
+pub fn apply_reverb(samples: &mut [f32], delay: usize, decay: f32) {
+    for i in delay..samples.len() {
+        samples[i] += samples[i - delay] * decay;
     }
 }
 
-impl Source for DisturbedAudioSource {
-    fn current_frame_len(&self) -> Option<usize> {
-        self.source.current_frame_len()
-    }
-
-    fn channels(&self) -> u16 {
-        self.source.channels()
-    }
-
-    fn sample_rate(&self) -> u32 {
-        self.sample_rate
-    }
-
-    fn total_duration(&self) -> Option<std::time::Duration> {
-        self.source.total_duration()
-    }
-}
-
-pub fn generate_sine_wave(frequency: f32, sample_rate: u32, duration: f32) -> SamplesBuffer<f32> {
-    let mut samples = Vec::new();
-    let num_samples = (duration * sample_rate as f32) as usize;
-    for i in 0..num_samples {
-        let t = i as f32 / sample_rate as f32;
-        let sample = (2.0 * PI * frequency * t).sin();
-        samples.push(sample);
-    }
-    SamplesBuffer::new(1, sample_rate, samples)
-}
-
-pub fn process_audio(source: DisturbedAudioSource) -> Vec<f32> {
-    let mut processed_samples = Vec::new();
-    for sample in source {
-        processed_samples.push(sample);
-    }
-    processed_samples
+pub fn optimize_audio_processing(samples: &mut [f32]) {
+    samples.iter_mut().for_each(|sample| *sample = sample.clamp(-1.0, 1.0));
 }
