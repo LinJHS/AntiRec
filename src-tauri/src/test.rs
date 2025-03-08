@@ -1,39 +1,50 @@
 use std::f32::consts::PI;
 
-fn apply_disturbance(input_signal: &[f32], noise_level: f32) -> Vec<f32> {
-    input_signal.iter()
-        .map(|&sample| sample + (noise_level * (rand::random::<f32>() - 0.5)))
-        .collect()
-}
+/// A simple audio processing module for adding noise and improving efficiency
+mod audio_processing {
+    /// Adds white noise to the audio signal
+    pub fn add_white_noise(signal: &mut [f32], noise_level: f32) {
+        for sample in signal.iter_mut() {
+            let noise = (rand::random::<f32>() * 2.0 - 1.0) * noise_level;
+            *sample += noise;
+        }
+    }
 
-fn low_pass_filter(signal: &mut [f32], cutoff_freq: f32, sample_rate: f32) {
-    let rc = 1.0 / (2.0 * PI * cutoff_freq);
-    let dt = 1.0 / sample_rate;
-    let alpha = dt / (rc + dt);
+    /// Applies a low-pass filter to the audio signal
+    pub fn low_pass_filter(signal: &mut [f32], cutoff_freq: f32, sample_rate: f32) {
+        let rc = 1.0 / (2.0 * PI * cutoff_freq);
+        let dt = 1.0 / sample_rate;
+        let alpha = dt / (rc + dt);
 
-    signal.iter_mut().fold(0.0, |prev, sample| {
-        let filtered = prev + alpha * (*sample - prev);
-        *sample = filtered;
-        filtered
-    });
-}
+        let mut prev_sample = signal[0];
+        for sample in signal.iter_mut().skip(1) {
+            *sample = prev_sample + alpha * (*sample - prev_sample);
+            prev_sample = *sample;
+        }
+    }
 
-fn process_audio(signal: &mut [f32], sample_rate: f32) -> Vec<f32> {
-    let noise_level = 0.05;
-    let cutoff_freq = 5000.0;
+    /// Normalizes the audio signal to a specified peak amplitude
+    pub fn normalize(signal: &mut [f32], peak_amplitude: f32) {
+        let max_amplitude = signal.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
+        if max_amplitude > 0.0 {
+            let scaling_factor = peak_amplitude / max_amplitude;
+            for sample in signal.iter_mut() {
+                *sample *= scaling_factor;
+            }
+        }
+    }
 
-    let disturbed_signal = apply_disturbance(signal, noise_level);
-    let mut filtered_signal = disturbed_signal.clone();
-    low_pass_filter(&mut filtered_signal, cutoff_freq, sample_rate);
-
-    filtered_signal
+    /// Efficiently processes the audio signal by applying noise and filtering
+    pub fn process_audio(signal: &mut [f32], noise_level: f32, cutoff_freq: f32, sample_rate: f32) {
+        add_white_noise(signal, noise_level);
+        low_pass_filter(signal, cutoff_freq, sample_rate);
+        normalize(signal, 1.0);
+    }
 }
 
 fn main() {
-    let sample_rate = 44100.0;
-    let mut signal = vec![0.0; 44100]; // Example audio signal
+    let mut audio_signal = vec![0.5, 0.3, 0.8, 0.2, 0.7];
+    audio_processing::process_audio(&mut audio_signal, 0.1, 1000.0, 44100.0);
 
-    let processed_signal = process_audio(&mut signal, sample_rate);
-
-    println!("Processed audio signal: {:?}", processed_signal);
+    println!("Processed Audio Signal: {:?}", audio_signal);
 }
