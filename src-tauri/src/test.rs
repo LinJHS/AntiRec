@@ -1,76 +1,71 @@
 use std::f32::consts::PI;
+use rodio::{source::Source, buffer::SamplesBuffer};
+use rand::Rng;
 
-pub struct AudioProcessor {
+pub struct DisturbedAudioSource {
+    source: Box<dyn Source<Item = f32> + Send>,
+    disturbance_level: f32,
     sample_rate: u32,
-    buffer: Vec<f32>,
 }
 
-impl AudioProcessor {
-    pub fn new(sample_rate: u32) -> Self {
-        AudioProcessor {
+impl DisturbedAudioSource {
+    pub fn new(source: Box<dyn Source<Item = f32> + Send>, disturbance_level: f32) -> Self {
+        let sample_rate = source.sample_rate();
+        Self {
+            source,
+            disturbance_level,
             sample_rate,
-            buffer: Vec::new(),
         }
-    }
-
-    pub fn process_audio(&mut self, input: &[f32], gain: f32, noise_level: f32) -> Vec<f32> {
-        let mut output = Vec::with_capacity(input.len());
-        for &sample in input {
-            let processed_sample = sample * gain;
-            let noise = noise_level * (2.0 * fastrand::f32() - 1.0);
-            output.push(processed_sample + noise);
-        }
-        self.buffer = output.clone();
-        output
-    }
-
-    pub fn apply_high_pass_filter(&mut self, cutoff_frequency: f32) -> Vec<f32> {
-        let alpha = 1.0 / (1.0 + (2.0 * PI * cutoff_frequency / self.sample_rate as f32));
-        let mut filtered_buffer = Vec::with_capacity(self.buffer.len());
-        let mut prev_sample = 0.0;
-        for &sample in &self.buffer {
-            let filtered_sample = alpha * (prev_sample + sample - filtered_buffer.last().unwrap_or(&0.0));
-            filtered_buffer.push(filtered_sample);
-            prev_sample = sample;
-        }
-        self.buffer = filtered_buffer.clone();
-        filtered_buffer
-    }
-
-    pub fn normalize_audio(&mut self, target_level: f32) -> Vec<f32> {
-        let max_sample = self.buffer.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
-        let normalization_factor = target_level / max_sample;
-        let normalized_buffer: Vec<f32> = self.buffer.iter().map(|&x| x * normalization_factor).collect();
-        self.buffer = normalized_buffer.clone();
-        normalized_buffer
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+impl Iterator for DisturbedAudioSource {
+    type Item = f32;
 
-    #[test]
-    fn test_audio_processing() {
-        let mut processor = AudioProcessor::new(44100);
-        let input = vec![0.5, -0.3, 0.8];
-        let output = processor.process_audio(&input, 1.5, 0.1);
-        assert_eq!(output.len(), input.len());
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(sample) = self.source.next() {
+            let mut rng = rand::thread_rng();
+            let disturbance = rng.gen_range(-self.disturbance_level..self.disturbance_level);
+            Some(sample + disturbance)
+        } else {
+            None
+        }
+    }
+}
+
+impl Source for DisturbedAudioSource {
+    fn current_frame_len(&self) -> Option<usize> {
+        self.source.current_frame_len()
     }
 
-    #[test]
-    fn test_high_pass_filter() {
-        let mut processor = AudioProcessor::new(44100);
-        processor.buffer = vec![0.5, -0.3, 0.8];
-        let filtered = processor.apply_high_pass_filter(1000.0);
-        assert_eq!(filtered.len(), processor.buffer.len());
+    fn channels(&self) -> u16 {
+        self.source.channels()
     }
 
-    #[test]
-    fn test_normalize_audio() {
-        let mut processor = AudioProcessor::new(44100);
-        processor.buffer = vec![0.5, -0.3, 0.8];
-        let normalized = processor.normalize_audio(1.0);
-        assert_eq!(normalized.len(), processor.buffer.len());
+    fn sample_rate(&self) -> u32 {
+        self.sample_rate
     }
+
+    fn total_duration(&self) -> Option<std::time::Duration> {
+        self.source.total_duration()
+    }
+}
+
+pub fn generate_sine_wave(frequency: f32, sample_rate: u32, duration: f32) -> SamplesBuffer<f32> {
+    let mut samples = Vec::new();
+    let num_samples = (duration * sample_rate as f32) as usize;
+    for i in 0..num_samples {
+        let t = i as f32 / sample_rate as f32;
+        let sample = (2.0 * PI * frequency * t).sin();
+        samples.push(sample);
+    }
+    SamplesBuffer::new(1, sample_rate, samples)
+}
+
+pub fn process_audio(source: DisturbedAudioSource) -> Vec<f32> {
+    let mut processed_samples = Vec::new();
+    for sample in source {
+        processed_samples.push(sample);
+    }
+    processed_samples
 }
