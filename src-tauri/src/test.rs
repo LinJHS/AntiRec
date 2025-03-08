@@ -1,71 +1,87 @@
 use std::f32::consts::PI;
-use rand::Rng;
+use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
 
-pub struct AudioProcessor {
-    sample_rate: u32,
-    buffer_size: usize,
+/// Generates a sine wave with a given frequency and sample rate.
+fn generate_sine_wave(frequency: f32, sample_rate: f32, duration: f32) -> Vec<f32> {
+    let num_samples = (sample_rate * duration) as usize;
+    let mut samples = Vec::with_capacity(num_samples);
+    let angular_frequency = 2.0 * PI * frequency;
+
+    for i in 0..num_samples {
+        let t = i as f32 / sample_rate;
+        samples.push((angular_frequency * t).sin());
+    }
+
+    samples
 }
 
-impl AudioProcessor {
-    pub fn new(sample_rate: u32, buffer_size: usize) -> Self {
-        AudioProcessor {
-            sample_rate,
-            buffer_size,
-        }
+/// Adds white noise to the audio signal.
+fn add_white_noise(signal: &mut Vec<f32>, noise_level: f32) {
+    for sample in signal.iter_mut() {
+        let noise = (rand::random::<f32>() - 0.5) * 2.0 * noise_level;
+        *sample += noise;
+    }
+}
+
+/// Applies a low-pass filter to the audio signal.
+fn apply_low_pass_filter(signal: &mut Vec<f32>, cutoff_frequency: f32, sample_rate: f32) {
+    let rc = 1.0 / (2.0 * PI * cutoff_frequency);
+    let dt = 1.0 / sample_rate;
+    let alpha = dt / (rc + dt);
+
+    let mut prev_output = 0.0;
+
+    for sample in signal.iter_mut() {
+        *sample = alpha * *sample + (1.0 - alpha) * prev_output;
+        prev_output = *sample;
+    }
+}
+
+/// Processes audio in parallel using multiple threads.
+fn parallel_audio_processing(signal: Arc<Vec<f32>>, num_threads: usize) -> Vec<f32> {
+    let chunk_size = signal.len() / num_threads;
+    let mut handles = vec![];
+
+    for i in 0..num_threads {
+        let signal_clone = Arc::clone(&signal);
+        let handle = thread::spawn(move || {
+            let start = i * chunk_size;
+            let end = if i == num_threads - 1 {
+                signal_clone.len()
+            } else {
+                start + chunk_size
+            };
+
+            signal_clone[start..end].to_vec()
+        });
+
+        handles.push(handle);
     }
 
-    pub fn process_audio(&self, input: &[f32], disturbance_level: f32) -> Vec<f32> {
-        let mut rng = rand::thread_rng();
-        input.iter()
-            .map(|&sample| {
-                let noise = rng.gen_range(-disturbance_level..disturbance_level);
-                sample + noise
-            })
-            .collect()
+    let mut processed_signal = Vec::new();
+    for handle in handles {
+        let mut chunk = handle.join().unwrap();
+        processed_signal.append(&mut chunk);
     }
 
-    pub fn apply_low_pass_filter(&self, input: &[f32], cutoff_frequency: f32) -> Vec<f32> {
-        let rc = 1.0 / (2.0 * PI * cutoff_frequency);
-        let dt = 1.0 / self.sample_rate as f32;
-        let alpha = dt / (rc + dt);
+    processed_signal
+}
 
-        let mut filtered = Vec::with_capacity(input.len());
-        let mut prev_output = 0.0;
+fn main() {
+    let sample_rate = 44100.0;
+    let duration = 1.0;
+    let frequency = 440.0;
+    let noise_level = 0.1;
+    let cutoff_frequency = 5000.0;
 
-        for &sample in input {
-            let output = prev_output + alpha * (sample - prev_output);
-            filtered.push(output);
-            prev_output = output;
-        }
+    let mut signal = generate_sine_wave(frequency, sample_rate, duration);
+    add_white_noise(&mut signal, noise_level);
+    apply_low_pass_filter(&mut signal, cutoff_frequency, sample_rate);
 
-        filtered
-    }
+    let signal_arc = Arc::new(signal);
+    let processed_signal = parallel_audio_processing(signal_arc, 4);
 
-    pub fn apply_high_pass_filter(&self, input: &[f32], cutoff_frequency: f32) -> Vec<f32> {
-        let rc = 1.0 / (2.0 * PI * cutoff_frequency);
-        let dt = 1.0 / self.sample_rate as f32;
-        let alpha = rc / (rc + dt);
-
-        let mut filtered = Vec::with_capacity(input.len());
-        let mut prev_input = 0.0;
-        let mut prev_output = 0.0;
-
-        for &sample in input {
-            let output = alpha * (prev_output + sample - prev_input);
-            filtered.push(output);
-            prev_input = sample;
-            prev_output = output;
-        }
-
-        filtered
-    }
-
-    pub fn apply_distortion(&self, input: &[f32], gain: f32) -> Vec<f32> {
-        input.iter()
-            .map(|&sample| {
-                let distorted = sample * gain;
-                distorted.tanh()
-            })
-            .collect()
-    }
+    println!("Audio processing complete.");
 }
