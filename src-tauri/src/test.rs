@@ -1,6 +1,7 @@
 use std::f32::consts::PI;
 use std::sync::Arc;
 use std::thread;
+use std::time::Duration;
 
 struct AudioBuffer {
     samples: Vec<f32>,
@@ -13,10 +14,11 @@ impl AudioBuffer {
     }
 
     fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
-        for (i, sample) in self.samples.iter_mut().enumerate() {
-            let time = i as f32 / self.sample_rate as f32;
-            let disturbance = amplitude * (2.0 * PI * frequency * time).sin();
-            *sample += disturbance;
+        let sample_count = self.samples.len();
+        for i in 0..sample_count {
+            let t = i as f32 / self.sample_rate as f32;
+            let disturbance = amplitude * (2.0 * PI * frequency * t).sin();
+            self.samples[i] += disturbance;
         }
     }
 
@@ -29,47 +31,36 @@ impl AudioBuffer {
         }
     }
 
-    fn process_in_parallel(&self, num_threads: usize, process_fn: Arc<dyn Fn(&mut AudioBuffer) + Send + Sync>) {
+    fn process_in_parallel(&mut self, num_threads: usize, process_fn: Arc<dyn Fn(&mut [f32]) + Send + Sync>) {
         let chunk_size = self.samples.len() / num_threads;
         let mut handles = vec![];
 
-        for i in 0..num_threads {
-            let mut buffer = AudioBuffer::new(self.samples.clone(), self.sample_rate);
+        for chunk in self.samples.chunks_mut(chunk_size) {
             let process_fn = Arc::clone(&process_fn);
-            let handle = thread::spawn(move || {
-                let start = i * chunk_size;
-                let end = if i == num_threads - 1 {
-                    buffer.samples.len()
-                } else {
-                    start + chunk_size
-                };
-                process_fn(&mut buffer);
-                buffer.samples[start..end].to_vec()
-            });
-            handles.push(handle);
+            handles.push(thread::spawn(move || {
+                process_fn(chunk);
+            }));
         }
 
-        let mut result = Vec::with_capacity(self.samples.len());
         for handle in handles {
-            result.extend(handle.join().unwrap());
+            handle.join().unwrap();
         }
-
-        self.samples.clone_from(&result);
     }
 }
 
 fn main() {
     let sample_rate = 44100;
-    let mut buffer = AudioBuffer::new(vec![0.0; 44100], sample_rate);
+    let mut audio_buffer = AudioBuffer::new(vec![0.0; sample_rate * 2], sample_rate);
 
-    buffer.add_disturbance(440.0, 0.1);
-    buffer.normalize();
-
-    let process_fn = Arc::new(|buf: &mut AudioBuffer| {
-        buf.add_disturbance(880.0, 0.05);
+    let process_fn = Arc::new(|chunk: &mut [f32]| {
+        for sample in chunk.iter_mut() {
+            *sample = sample.tanh(); // Apply a non-linear transformation
+        }
     });
 
-    buffer.process_in_parallel(4, process_fn);
+    audio_buffer.add_disturbance(1000.0, 0.1);
+    audio_buffer.process_in_parallel(4, process_fn);
+    audio_buffer.normalize();
 
-    // Further processing or output of the buffer can be done here
+    println!("Audio processing complete.");
 }
