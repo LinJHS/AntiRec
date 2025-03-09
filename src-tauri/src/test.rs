@@ -1,70 +1,80 @@
 use std::f32::consts::PI;
-use std::sync::Arc;
-use std::thread;
+use rand::Rng;
 
-struct AudioBuffer {
-    samples: Vec<f32>,
-    sample_rate: u32,
+#[derive(Clone, Debug)]
+pub struct AudioSample {
+    pub data: Vec<f32>,
+    pub sample_rate: u32,
 }
 
-impl AudioBuffer {
-    fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
-        AudioBuffer { samples, sample_rate }
+impl AudioSample {
+    pub fn new(data: Vec<f32>, sample_rate: u32) -> Self {
+        AudioSample { data, sample_rate }
     }
 
-    fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
+    pub fn add_noise(&mut self, noise_level: f32) {
         let mut rng = rand::thread_rng();
-        for i in 0..self.samples.len() {
-            let t = i as f32 / self.sample_rate as f32;
-            let noise = amplitude * (2.0 * PI * frequency * t).sin();
-            self.samples[i] += noise + rng.gen_range(-0.1..0.1);
+        for sample in &mut self.data {
+            let noise: f32 = rng.gen_range(-noise_level..noise_level);
+            *sample += noise;
         }
     }
 
-    fn normalize(&mut self) {
-        let max_amplitude = self.samples.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
+    pub fn apply_low_pass_filter(&mut self, cutoff_frequency: f32) {
+        let rc = 1.0 / (2.0 * PI * cutoff_frequency);
+        let dt = 1.0 / self.sample_rate as f32;
+        let alpha = dt / (rc + dt);
+
+        let mut prev_filtered = self.data[0];
+        for sample in &mut self.data {
+            *sample = alpha * *sample + (1.0 - alpha) * prev_filtered;
+            prev_filtered = *sample;
+        }
+    }
+
+    pub fn normalize(&mut self) {
+        let max_amplitude = self
+            .data
+            .iter()
+            .fold(0.0, |max, &val| val.abs().max(max));
+
         if max_amplitude > 0.0 {
-            for sample in &mut self.samples {
+            for sample in &mut self.data {
                 *sample /= max_amplitude;
             }
         }
     }
 
-    fn process_in_parallel(&mut self, num_threads: usize) {
-        let chunk_size = self.samples.len() / num_threads;
-        let mut handles = vec![];
-        let samples_arc = Arc::new(self.samples.clone());
+    pub fn mix(&self, other: &AudioSample) -> AudioSample {
+        assert_eq!(self.sample_rate, other.sample_rate);
+        let mixed_data = self
+            .data
+            .iter()
+            .zip(other.data.iter())
+            .map(|(&a, &b)| a + b)
+            .collect();
 
-        for i in 0..num_threads {
-            let samples_arc = Arc::clone(&samples_arc);
-            let start = i * chunk_size;
-            let end = if i == num_threads - 1 {
-                self.samples.len()
-            } else {
-                start + chunk_size
-            };
-
-            handles.push(thread::spawn(move || {
-                let mut local_samples = samples_arc[start..end].to_vec();
-                for sample in &mut local_samples {
-                    *sample = sample.abs().sqrt();
-                }
-                local_samples
-            }));
-        }
-
-        let mut result = Vec::with_capacity(self.samples.len());
-        for handle in handles {
-            result.extend(handle.join().unwrap());
-        }
-
-        self.samples = result;
+        AudioSample::new(mixed_data, self.sample_rate)
     }
 }
 
-fn main() {
-    let mut audio_buffer = AudioBuffer::new(vec![0.0; 44100], 44100);
-    audio_buffer.add_disturbance(440.0, 0.5);
-    audio_buffer.normalize();
-    audio_buffer.process_in_parallel(4);
+pub fn generate_sinusoid(frequency: f32, duration: f32, sample_rate: u32) -> AudioSample {
+    let num_samples = (duration * sample_rate as f32) as usize;
+    let mut data = Vec::with_capacity(num_samples);
+    let angular_frequency = 2.0 * PI * frequency;
+
+    for i in 0..num_samples {
+        let t = i as f32 / sample_rate as f32;
+        data.push((angular_frequency * t).sin());
+    }
+
+    AudioSample::new(data, sample_rate)
+}
+
+pub fn process_audio(audio: AudioSample) -> AudioSample {
+    let mut processed_audio = audio.clone();
+    processed_audio.add_noise(0.01);
+    processed_audio.apply_low_pass_filter(1000.0);
+    processed_audio.normalize();
+    processed_audio
 }
