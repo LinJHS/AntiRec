@@ -14,17 +14,18 @@ impl AudioBuffer {
     }
 
     fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
-        for (i, sample) in self.samples.iter_mut().enumerate() {
+        let sample_count = self.samples.len();
+        for i in 0..sample_count {
             let t = i as f32 / self.sample_rate as f32;
             let disturbance = amplitude * (2.0 * PI * frequency * t).sin();
-            *sample += disturbance;
+            self.samples[i] += disturbance;
         }
     }
 
     fn normalize(&mut self) {
         let max_amplitude = self.samples.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
         if max_amplitude > 0.0 {
-            for sample in self.samples.iter_mut() {
+            for sample in &mut self.samples {
                 *sample /= max_amplitude;
             }
         }
@@ -47,7 +48,7 @@ impl AudioBuffer {
             handles.push(thread::spawn(move || {
                 let mut local_samples = samples_arc[start..end].to_vec();
                 for sample in &mut local_samples {
-                    *sample = sample.powf(2.0); // Example processing: square the samples
+                    *sample = sample.abs().sqrt(); // Example processing
                 }
                 local_samples
             }));
