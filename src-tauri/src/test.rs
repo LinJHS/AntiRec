@@ -14,18 +14,17 @@ impl AudioBuffer {
     }
 
     fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
-        let sample_count = self.samples.len();
-        for i in 0..sample_count {
+        for (i, sample) in self.samples.iter_mut().enumerate() {
             let t = i as f32 / self.sample_rate as f32;
             let disturbance = amplitude * (2.0 * PI * frequency * t).sin();
-            self.samples[i] += disturbance;
+            *sample += disturbance;
         }
     }
 
     fn normalize(&mut self) {
         let max_amplitude = self.samples.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
         if max_amplitude > 0.0 {
-            for sample in &mut self.samples {
+            for sample in self.samples.iter_mut() {
                 *sample /= max_amplitude;
             }
         }
