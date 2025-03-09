@@ -1,64 +1,75 @@
 use std::f32::consts::PI;
-use rand::Rng;
+use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
 
-#[derive(Clone, Copy)]
-pub struct AudioSample {
-    pub left: f32,
-    pub right: f32,
-}
-
-pub struct AudioBuffer {
-    pub samples: Vec<AudioSample>,
-    pub sample_rate: u32,
+struct AudioBuffer {
+    samples: Vec<f32>,
+    sample_rate: u32,
 }
 
 impl AudioBuffer {
-    pub fn new(sample_rate: u32) -> Self {
-        Self {
-            samples: Vec::new(),
-            sample_rate,
+    fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
+        AudioBuffer { samples, sample_rate }
+    }
+
+    fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
+        let sample_count = self.samples.len();
+        for i in 0..sample_count {
+            let t = i as f32 / self.sample_rate as f32;
+            let disturbance = amplitude * (2.0 * PI * frequency * t).sin();
+            self.samples[i] += disturbance;
         }
     }
 
-    pub fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
-        let mut rng = rand::thread_rng();
-        for sample in &mut self.samples {
-            let noise = rng.gen_range(-amplitude..amplitude);
-            let phase = 2.0 * PI * frequency / self.sample_rate as f32;
-            sample.left += noise * phase.sin();
-            sample.right += noise * phase.cos();
-        }
-    }
-
-    pub fn apply_equalizer(&mut self, frequencies: &[f32], gains: &[f32]) {
-        assert!(frequencies.len() == gains.len(), "Frequencies and gains must have the same length");
-
-        for (i, sample) in self.samples.iter_mut().enumerate() {
-            let mut eq_left = 0.0;
-            let mut eq_right = 0.0;
-
-            for (j, &freq) in frequencies.iter().enumerate() {
-                let gain = gains[j];
-                let phase = 2.0 * PI * freq * i as f32 / self.sample_rate as f32;
-                eq_left += gain * phase.sin();
-                eq_right += gain * phase.cos();
-            }
-
-            sample.left *= eq_left;
-            sample.right *= eq_right;
-        }
-    }
-
-    pub fn normalize(&mut self) {
-        let max_amplitude = self.samples.iter()
-            .map(|s| s.left.abs().max(s.right.abs()))
-            .fold(0.0, |a, b| a.max(b));
-
+    fn normalize(&mut self) {
+        let max_amplitude = self.samples.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
         if max_amplitude > 0.0 {
             for sample in &mut self.samples {
-                sample.left /= max_amplitude;
-                sample.right /= max_amplitude;
+                *sample /= max_amplitude;
             }
         }
     }
+
+    fn process_in_parallel(&mut self, num_threads: usize) {
+        let chunk_size = self.samples.len() / num_threads;
+        let mut handles = vec![];
+        let samples_arc = Arc::new(self.samples.clone());
+
+        for i in 0..num_threads {
+            let samples_arc = Arc::clone(&samples_arc);
+            let start = i * chunk_size;
+            let end = if i == num_threads - 1 {
+                self.samples.len()
+            } else {
+                start + chunk_size
+            };
+
+            handles.push(thread::spawn(move || {
+                let mut local_samples = samples_arc[start..end].to_vec();
+                for sample in &mut local_samples {
+                    *sample = sample.abs().sqrt();
+                }
+                local_samples
+            }));
+        }
+
+        let mut processed_samples = Vec::with_capacity(self.samples.len());
+        for handle in handles {
+            processed_samples.extend(handle.join().unwrap());
+        }
+
+        self.samples = processed_samples;
+    }
+}
+
+fn main() {
+    let sample_rate = 44100;
+    let mut audio_buffer = AudioBuffer::new(vec![0.0; sample_rate], sample_rate);
+
+    audio_buffer.add_disturbance(440.0, 0.1);
+    audio_buffer.normalize();
+    audio_buffer.process_in_parallel(4);
+
+    println!("Audio processing complete.");
 }
