@@ -1,57 +1,37 @@
 use std::f32::consts::PI;
-use std::sync::Arc;
-use std::thread;
-use dasp::signal::{self, Signal};
 
-struct AudioProcessor {
-    sample_rate: u32,
-    buffer_size: usize,
+fn apply_disturbance(signal: &[f32], noise_level: f32) -> Vec<f32> {
+    signal.iter()
+        .map(|&x| x + noise_level * (2.0 * rand::random::<f32>() - 1.0))
+        .collect()
 }
 
-impl AudioProcessor {
-    fn new(sample_rate: u32, buffer_size: usize) -> Self {
-        AudioProcessor {
-            sample_rate,
-            buffer_size,
+fn fast_fourier_transform(signal: &[f32]) -> Vec<f32> {
+    let n = signal.len();
+    let mut output = signal.to_vec();
+
+    for i in 0..n {
+        let mut sum = 0.0;
+        for j in 0..n {
+            let theta = -2.0 * PI * (i as f32) * (j as f32) / (n as f32);
+            sum += signal[j] * (theta.cos() + theta.sin());
         }
+        output[i] = sum;
     }
+    output
+}
 
-    fn process(&self, input: &[f32]) -> Vec<f32> {
-        let mut output = Vec::with_capacity(self.buffer_size);
-        let mut phase = 0.0;
-
-        for &sample in input {
-            let processed_sample = self.add_disturbance(sample, phase);
-            output.push(processed_sample);
-            phase = (phase + 2.0 * PI * 440.0 / self.sample_rate as f32) % (2.0 * PI);
-        }
-
-        output
-    }
-
-    fn add_disturbance(&self, sample: f32, phase: f32) -> f32 {
-        let disturbance = 0.1 * (2.0 * PI * 440.0 * phase).sin();
-        sample + disturbance
-    }
+fn compress_audio(signal: &[f32], threshold: f32) -> Vec<f32> {
+    signal.iter()
+        .map(|&x| if x.abs() < threshold { 0.0 } else { x })
+        .collect()
 }
 
 fn main() {
-    let processor = Arc::new(AudioProcessor::new(44100, 1024));
-    let input_signal = signal::rate(44100).const_hz(440.0).sine();
+    let signal = vec![0.5, -0.2, 0.7, -0.1, 0.3];
+    let noisy_signal = apply_disturbance(&signal, 0.1);
+    let compressed_signal = compress_audio(&noisy_signal, 0.2);
+    let freq_domain = fast_fourier_transform(&compressed_signal);
 
-    let handles: Vec<_> = (0..4).map(|_| {
-        let processor = Arc::clone(&processor);
-        let input_signal = input_signal.clone();
-        thread::spawn(move || {
-            let mut buffer = Vec::with_capacity(1024);
-            for sample in input_signal.take(1024) {
-                buffer.push(sample);
-            }
-            processor.process(&buffer)
-        })
-    }).collect();
-
-    for handle in handles {
-        let _ = handle.join().unwrap();
-    }
+    println!("{:?}", freq_domain);
 }
