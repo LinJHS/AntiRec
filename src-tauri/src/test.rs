@@ -3,50 +3,39 @@ use std::f32::consts::PI;
 pub struct AudioProcessor {
     sample_rate: u32,
     buffer: Vec<f32>,
-    noise_level: f32,
 }
 
 impl AudioProcessor {
-    pub fn new(sample_rate: u32, buffer: Vec<f32>, noise_level: f32) -> Self {
+    pub fn new(sample_rate: u32) -> Self {
         AudioProcessor {
             sample_rate,
-            buffer,
-            noise_level,
+            buffer: Vec::new(),
         }
     }
 
-    pub fn add_disturbance(&mut self) {
-        let noise_amplitude = self.noise_level * 0.01;
-        let phase_shift = 0.5 * PI;
-
-        for sample in &mut self.buffer {
-            let noise = noise_amplitude * (phase_shift * *sample).sin();
-            *sample += noise;
-        }
+    pub fn process_audio(&mut self, input: &[f32]) -> Vec<f32> {
+        self.buffer.clear();
+        self.buffer.extend(input.iter().map(|&sample| {
+            let disturbed_sample = self.add_disturbance(sample);
+            self.apply_low_pass_filter(disturbed_sample)
+        }));
+        self.buffer.clone()
     }
 
-    pub fn apply_low_pass_filter(&mut self, cutoff_freq: f32) {
-        let rc = 1.0 / (2.0 * PI * cutoff_freq);
-        let dt = 1.0 / self.sample_rate as f32;
-        let alpha = dt / (rc + dt);
-
-        let mut prev_output = 0.0;
-        for sample in &mut self.buffer {
-            *sample = alpha * *sample + (1.0 - alpha) * prev_output;
-            prev_output = *sample;
-        }
+    fn add_disturbance(&self, sample: f32) -> f32 {
+        let noise = (2.0 * PI * 440.0 * sample / self.sample_rate as f32).sin() * 0.1;
+        sample + noise
     }
 
-    pub fn normalize(&mut self) {
-        let max_amplitude = self.buffer.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
-        if max_amplitude > 0.0 {
-            for sample in &mut self.buffer {
-                *sample /= max_amplitude;
-            }
-        }
+    fn apply_low_pass_filter(&self, sample: f32) -> f32 {
+        let alpha = 0.1;
+        let mut filtered_sample = 0.0;
+        filtered_sample = alpha * sample + (1.0 - alpha) * filtered_sample;
+        filtered_sample
     }
+}
 
-    pub fn get_buffer(&self) -> &Vec<f32> {
-        &self.buffer
-    }
+pub fn optimize_audio_processing(input: &[f32], sample_rate: u32) -> Vec<f32> {
+    let mut processor = AudioProcessor::new(sample_rate);
+    processor.process_audio(input)
 }
