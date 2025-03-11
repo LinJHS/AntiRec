@@ -1,37 +1,54 @@
 use std::f32::consts::PI;
+use std::sync::Arc;
+use std::sync::Mutex;
 
-fn apply_disturbance(signal: &[f32], noise_level: f32) -> Vec<f32> {
-    signal.iter()
-        .map(|&x| x + noise_level * (2.0 * rand::random::<f32>() - 1.0))
-        .collect()
+#[derive(Clone)]
+struct AudioBuffer {
+    samples: Arc<Mutex<Vec<f32>>>,
 }
 
-fn fast_fourier_transform(signal: &[f32]) -> Vec<f32> {
-    let n = signal.len();
-    let mut output = signal.to_vec();
-
-    for i in 0..n {
-        let mut sum = 0.0;
-        for j in 0..n {
-            let theta = -2.0 * PI * (i as f32) * (j as f32) / (n as f32);
-            sum += signal[j] * (theta.cos() + theta.sin());
+impl AudioBuffer {
+    fn new(size: usize) -> Self {
+        AudioBuffer {
+            samples: Arc::new(Mutex::new(vec![0.0; size])),
         }
-        output[i] = sum;
     }
-    output
+
+    fn add_disturbance(&self, frequency: f32, amplitude: f32) {
+        let mut samples = self.samples.lock().unwrap();
+        for (i, sample) in samples.iter_mut().enumerate() {
+            let t = i as f32 / 44100.0;
+            *sample += amplitude * (2.0 * PI * frequency * t).sin();
+        }
+    }
+
+    fn apply_compression(&self, threshold: f32, ratio: f32) {
+        let mut samples = self.samples.lock().unwrap();
+        for sample in samples.iter_mut() {
+            if *sample.abs() > threshold {
+                *sample = threshold + (*sample.abs() - threshold) / ratio * (*sample).signum();
+            }
+        }
+    }
+
+    fn normalize(&self) {
+        let mut samples = self.samples.lock().unwrap();
+        let max_amplitude = samples.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
+        if max_amplitude > 0.0 {
+            for sample in samples.iter_mut() {
+                *sample /= max_amplitude;
+            }
+        }
+    }
 }
 
-fn compress_audio(signal: &[f32], threshold: f32) -> Vec<f32> {
-    signal.iter()
-        .map(|&x| if x.abs() < threshold { 0.0 } else { x })
-        .collect()
+fn process_audio(buffer: AudioBuffer) {
+    buffer.add_disturbance(440.0, 0.1);
+    buffer.apply_compression(0.5, 4.0);
+    buffer.normalize();
 }
 
 fn main() {
-    let signal = vec![0.5, -0.2, 0.7, -0.1, 0.3];
-    let noisy_signal = apply_disturbance(&signal, 0.1);
-    let compressed_signal = compress_audio(&noisy_signal, 0.2);
-    let freq_domain = fast_fourier_transform(&compressed_signal);
-
-    println!("{:?}", freq_domain);
+    let buffer = AudioBuffer::new(44100);
+    process_audio(buffer);
 }
