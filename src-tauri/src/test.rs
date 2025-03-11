@@ -3,30 +3,27 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-/// A simple audio buffer structure
+/// A struct representing an audio buffer with added noise
 struct AudioBuffer {
     samples: Vec<f32>,
     sample_rate: u32,
+    noise_level: f32,
 }
 
 impl AudioBuffer {
-    /// Create a new audio buffer with the given sample rate
-    fn new(sample_rate: u32) -> Self {
+    /// Create a new AudioBuffer with the given samples and sample rate
+    fn new(samples: Vec<f32>, sample_rate: u32, noise_level: f32) -> Self {
         AudioBuffer {
-            samples: Vec::new(),
+            samples,
             sample_rate,
+            noise_level,
         }
     }
 
-    /// Add a sample to the buffer
-    fn push_sample(&mut self, sample: f32) {
-        self.samples.push(sample);
-    }
-
-    /// Apply a disturbance (noise) to the audio buffer
-    fn add_disturbance(&mut self, amplitude: f32) {
+    /// Add white noise to the audio buffer
+    fn add_noise(&mut self) {
         for sample in &mut self.samples {
-            let noise = (rand::random::<f32>() * 2.0 - 1.0) * amplitude;
+            let noise = (rand::random::<f32>() - 0.5) * 2.0 * self.noise_level;
             *sample += noise;
         }
     }
@@ -37,69 +34,44 @@ impl AudioBuffer {
         let dt = 1.0 / self.sample_rate as f32;
         let alpha = dt / (rc + dt);
 
-        let mut prev_sample = 0.0;
+        let mut prev_sample = self.samples[0];
         for sample in &mut self.samples {
-            let filtered_sample = prev_sample + alpha * (*sample - prev_sample);
+            let filtered_sample = alpha * *sample + (1.0 - alpha) * prev_sample;
             prev_sample = filtered_sample;
             *sample = filtered_sample;
         }
     }
 
-    /// Process the audio buffer in parallel using multiple threads
-    fn process_in_parallel(&mut self, num_threads: usize) {
-        let chunk_size = self.samples.len() / num_threads;
+    /// Process the audio buffer in parallel
+    fn process_parallel(&mut self) {
+        let chunk_size = self.samples.len() / 4;
         let mut handles = vec![];
 
-        let samples_arc = Arc::new(self.samples.clone());
-
-        for i in 0..num_threads {
-            let samples_arc = Arc::clone(&samples_arc);
-            let start = i * chunk_size;
-            let end = if i == num_threads - 1 {
-                self.samples.len()
-            } else {
-                start + chunk_size
-            };
-
-            handles.push(thread::spawn(move || {
-                let mut local_samples = samples_arc[start..end].to_vec();
-                for sample in &mut local_samples {
-                    *sample = sample.sin(); // Example processing: apply sine wave
+        for chunk in self.samples.chunks_mut(chunk_size) {
+            let noise_level = self.noise_level;
+            let handle = thread::spawn(move || {
+                for sample in chunk {
+                    let noise = (rand::random::<f32>() - 0.5) * 2.0 * noise_level;
+                    *sample += noise;
                 }
-                local_samples
-            }));
+            });
+            handles.push(handle);
         }
 
-        let mut processed_samples = Vec::new();
         for handle in handles {
-            processed_samples.extend(handle.join().unwrap());
+            handle.join().unwrap();
         }
-
-        self.samples = processed_samples;
     }
 }
 
 fn main() {
-    let mut audio_buffer = AudioBuffer::new(44100);
+    let sample_rate = 44100;
+    let noise_level = 0.1;
+    let mut audio_buffer = AudioBuffer::new(vec![0.0; 44100], sample_rate, noise_level);
 
-    // Generate a simple sine wave
-    for i in 0..44100 {
-        let sample = (2.0 * PI * 440.0 * i as f32 / 44100.0).sin();
-        audio_buffer.push_sample(sample);
-    }
+    audio_buffer.add_noise();
+    audio_buffer.apply_low_pass_filter(5000.0);
+    audio_buffer.process_parallel();
 
-    // Add some disturbance
-    audio_buffer.add_disturbance(0.1);
-
-    // Apply a low-pass filter
-    audio_buffer.apply_low_pass_filter(1000.0);
-
-    // Process the audio in parallel
-    audio_buffer.process_in_parallel(4);
-
-    // Simulate playback
-    for sample in &audio_buffer.samples {
-        println!("{}", sample);
-        thread::sleep(Duration::from_millis(10));
-    }
+    println!("Audio processing complete.");
 }
