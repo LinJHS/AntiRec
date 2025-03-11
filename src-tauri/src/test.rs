@@ -14,25 +14,18 @@ impl AudioBuffer {
     }
 
     fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
-        for (i, sample) in self.samples.iter_mut().enumerate() {
+        let mut rng = rand::thread_rng();
+        for i in 0..self.samples.len() {
             let t = i as f32 / self.sample_rate as f32;
-            let disturbance = amplitude * (2.0 * PI * frequency * t).sin();
-            *sample += disturbance;
-        }
-    }
-
-    fn normalize(&mut self) {
-        let max_amplitude = self.samples.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
-        if max_amplitude > 0.0 {
-            for sample in self.samples.iter_mut() {
-                *sample /= max_amplitude;
-            }
+            let noise = amplitude * (2.0 * PI * frequency * t).sin();
+            self.samples[i] += noise + rng.gen_range(-0.1..0.1);
         }
     }
 
     fn process_in_parallel(&mut self, num_threads: usize) {
         let chunk_size = self.samples.len() / num_threads;
         let mut handles = vec![];
+
         let samples_arc = Arc::new(self.samples.clone());
 
         for i in 0..num_threads {
@@ -66,8 +59,7 @@ fn main() {
     let sample_rate = 44100;
     let mut audio_buffer = AudioBuffer::new(vec![0.0; sample_rate], sample_rate);
 
-    audio_buffer.add_disturbance(440.0, 0.1);
-    audio_buffer.normalize();
+    audio_buffer.add_disturbance(440.0, 0.05);
     audio_buffer.process_in_parallel(4);
 
     println!("Audio processing complete.");
