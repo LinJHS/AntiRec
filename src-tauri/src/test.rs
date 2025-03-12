@@ -1,84 +1,66 @@
 use std::f32::consts::PI;
+use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
 
-#[derive(Debug)]
-pub struct AudioProcessor {
+struct AudioBuffer {
+    samples: Vec<f32>,
     sample_rate: u32,
-    buffer_size: usize,
-    disturbance_level: f32,
 }
 
-impl AudioProcessor {
-    pub fn new(sample_rate: u32, buffer_size: usize, disturbance_level: f32) -> Self {
-        AudioProcessor {
-            sample_rate,
-            buffer_size,
-            disturbance_level,
-        }
+impl AudioBuffer {
+    fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
+        AudioBuffer { samples, sample_rate }
     }
 
-    pub fn process_audio(&self, input: &[f32]) -> Vec<f32> {
-        let mut output = Vec::with_capacity(input.len());
-        let disturbance = self.generate_disturbance(input.len());
-
-        for (i, &sample) in input.iter().enumerate() {
-            let processed_sample = sample + disturbance[i];
-            output.push(processed_sample);
-        }
-
-        output
-    }
-
-    fn generate_disturbance(&self, length: usize) -> Vec<f32> {
-        let mut disturbance = Vec::with_capacity(length);
-        let frequency = 440.0; // A4 note frequency
-        let amplitude = self.disturbance_level;
-
-        for i in 0..length {
+    fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
+        let sample_count = self.samples.len();
+        for i in 0..sample_count {
             let t = i as f32 / self.sample_rate as f32;
-            let value = amplitude * (2.0 * PI * frequency * t).sin();
-            disturbance.push(value);
+            let disturbance = amplitude * (2.0 * PI * frequency * t).sin();
+            self.samples[i] += disturbance;
         }
-
-        disturbance
     }
 
-    pub fn apply_low_pass_filter(&self, input: &[f32], cutoff_frequency: f32) -> Vec<f32> {
-        let rc = 1.0 / (2.0 * PI * cutoff_frequency);
-        let dt = 1.0 / self.sample_rate as f32;
-        let alpha = dt / (rc + dt);
+    fn normalize(&mut self) {
+        let max_amplitude = self.samples.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
+        if max_amplitude > 0.0 {
+            for sample in &mut self.samples {
+                *sample /= max_amplitude;
+            }
+        }
+    }
 
-        let mut filtered = Vec::with_capacity(input.len());
-        let mut prev_output = 0.0;
+    fn process_in_parallel(&mut self, num_threads: usize, process_fn: Arc<dyn Fn(&mut [f32]) + Send + Sync>) {
+        let chunk_size = self.samples.len() / num_threads;
+        let mut handles = vec![];
 
-        for &sample in input {
-            let output = prev_output + alpha * (sample - prev_output);
-            filtered.push(output);
-            prev_output = output;
+        for chunk in self.samples.chunks_mut(chunk_size) {
+            let process_fn = Arc::clone(&process_fn);
+            handles.push(thread::spawn(move || {
+                process_fn(chunk);
+            }));
         }
 
-        filtered
+        for handle in handles {
+            handle.join().unwrap();
+        }
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+fn main() {
+    let sample_rate = 44100;
+    let mut audio_buffer = AudioBuffer::new(vec![0.0; sample_rate * 2], sample_rate);
 
-    #[test]
-    fn test_audio_processing() {
-        let processor = AudioProcessor::new(44100, 1024, 0.1);
-        let input = vec![0.0; 1024];
-        let output = processor.process_audio(&input);
+    let process_fn = Arc::new(|chunk: &mut [f32]| {
+        for sample in chunk.iter_mut() {
+            *sample = sample.tanh(); // Apply a non-linear transformation
+        }
+    });
 
-        assert_eq!(output.len(), input.len());
-    }
+    audio_buffer.add_disturbance(1000.0, 0.1);
+    audio_buffer.process_in_parallel(4, process_fn);
+    audio_buffer.normalize();
 
-    #[test]
-    fn test_low_pass_filter() {
-        let processor = AudioProcessor::new(44100, 1024, 0.1);
-        let input = vec![1.0; 1024];
-        let filtered = processor.apply_low_pass_filter(&input, 1000.0);
-
-        assert_eq!(filtered.len(), input.len());
-    }
+    println!("Audio processing complete.");
 }
