@@ -14,30 +14,31 @@ impl AudioBuffer {
     }
 
     fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
-        let mut rng = rand::thread_rng();
-        for i in 0..self.samples.len() {
-            let t = i as f32 / self.sample_rate as f32;
-            let noise = amplitude * (2.0 * PI * frequency * t).sin();
-            self.samples[i] += noise + rng.gen_range(-0.1..0.1);
+        let duration = self.samples.len() as f32 / self.sample_rate as f32;
+        for (i, sample) in self.samples.iter_mut().enumerate() {
+            let time = i as f32 / self.sample_rate as f32;
+            let disturbance = amplitude * (2.0 * PI * frequency * time).sin();
+            *sample += disturbance;
         }
     }
 
     fn process_in_parallel(&mut self, num_threads: usize) {
         let chunk_size = self.samples.len() / num_threads;
         let mut handles = vec![];
-        let samples_arc = Arc::new(self.samples.clone());
+
+        let samples_arc = Arc::new(self.samples.split_off(0));
 
         for i in 0..num_threads {
-            let samples_arc = Arc::clone(&samples_arc);
+            let samples_clone = Arc::clone(&samples_arc);
             let start = i * chunk_size;
             let end = if i == num_threads - 1 {
-                self.samples.len()
+                samples_clone.len()
             } else {
                 start + chunk_size
             };
 
             handles.push(thread::spawn(move || {
-                let mut local_samples = samples_arc[start..end].to_vec();
+                let mut local_samples = samples_clone[start..end].to_vec();
                 for sample in &mut local_samples {
                     *sample = sample.abs().sqrt();
                 }
@@ -56,9 +57,9 @@ impl AudioBuffer {
 
 fn main() {
     let sample_rate = 44100;
-    let mut audio_buffer = AudioBuffer::new(vec![0.0; sample_rate], sample_rate);
+    let mut audio_buffer = AudioBuffer::new(vec![0.0; sample_rate * 2], sample_rate);
 
-    audio_buffer.add_disturbance(440.0, 0.05);
+    audio_buffer.add_disturbance(440.0, 0.1);
     audio_buffer.process_in_parallel(4);
 
     println!("Audio processing complete.");
