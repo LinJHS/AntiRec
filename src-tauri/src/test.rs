@@ -1,88 +1,46 @@
 use std::f32::consts::PI;
-use rand::Rng;
 
-pub struct AudioProcessor {
-    sample_rate: u32,
-    buffer: Vec<f32>,
+/// Applies a low-pass filter to the audio signal
+pub fn low_pass_filter(signal: &[f32], cutoff_freq: f32, sample_rate: f32) -> Vec<f32> {
+    let rc = 1.0 / (2.0 * PI * cutoff_freq);
+    let dt = 1.0 / sample_rate;
+    let alpha = dt / (rc + dt);
+
+    let mut filtered_signal = Vec::with_capacity(signal.len());
+    let mut prev_value = 0.0;
+
+    for &value in signal {
+        prev_value = alpha * value + (1.0 - alpha) * prev_value;
+        filtered_signal.push(prev_value);
+    }
+
+    filtered_signal
 }
 
-impl AudioProcessor {
-    pub fn new(sample_rate: u32) -> Self {
-        AudioProcessor {
-            sample_rate,
-            buffer: Vec::new(),
-        }
-    }
-
-    pub fn process(&mut self, input: &[f32]) -> Vec<f32> {
-        let mut rng = rand::thread_rng();
-        let mut output = Vec::with_capacity(input.len());
-
-        for &sample in input {
-            let noise: f32 = rng.gen_range(-0.1..0.1);
-            let processed_sample = sample + noise;
-            output.push(processed_sample.clamp(-1.0, 1.0));
-        }
-
-        output
-    }
-
-    pub fn apply_filter(&mut self, input: &[f32], cutoff_freq: f32) -> Vec<f32> {
-        let rc = 1.0 / (2.0 * PI * cutoff_freq);
-        let dt = 1.0 / self.sample_rate as f32;
-        let alpha = dt / (rc + dt);
-
-        let mut filtered = Vec::with_capacity(input.len());
-        let mut prev_output = 0.0;
-
-        for &sample in input {
-            let output = alpha * sample + (1.0 - alpha) * prev_output;
-            filtered.push(output);
-            prev_output = output;
-        }
-
-        filtered
-    }
-
-    pub fn normalize(&mut self, input: &[f32]) -> Vec<f32> {
-        let max_amplitude = input.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
-        if max_amplitude == 0.0 {
-            return input.to_vec();
-        }
-
-        input.iter().map(|&x| x / max_amplitude).collect()
-    }
+/// Adds white noise to the audio signal
+pub fn add_white_noise(signal: &[f32], noise_level: f32) -> Vec<f32> {
+    signal.iter()
+        .map(|&sample| sample + (rand::random::<f32>() * 2.0 - 1.0) * noise_level)
+        .collect()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+/// Efficiently mixes two audio signals
+pub fn mix_signals(signal1: &[f32], signal2: &[f32]) -> Vec<f32> {
+    signal1.iter()
+        .zip(signal2.iter())
+        .map(|(&s1, &s2)| (s1 + s2).clamp(-1.0, 1.0))
+        .collect()
+}
 
-    #[test]
-    fn test_process() {
-        let mut processor = AudioProcessor::new(44100);
-        let input = vec![0.5, -0.5, 0.0];
-        let output = processor.process(&input);
+/// Normalizes the audio signal to prevent clipping
+pub fn normalize_signal(signal: &mut [f32]) {
+    let max_amplitude = signal.iter()
+        .fold(0.0, |max, &sample| max.max(sample.abs()));
 
-        assert_eq!(output.len(), input.len());
-    }
-
-    #[test]
-    fn test_apply_filter() {
-        let mut processor = AudioProcessor::new(44100);
-        let input = vec![0.5, -0.5, 0.0];
-        let output = processor.apply_filter(&input, 1000.0);
-
-        assert_eq!(output.len(), input.len());
-    }
-
-    #[test]
-    fn test_normalize() {
-        let mut processor = AudioProcessor::new(44100);
-        let input = vec![0.5, -0.5, 0.0];
-        let output = processor.normalize(&input);
-
-        assert_eq!(output.len(), input.len());
-        assert!(output.iter().all(|&x| x.abs() <= 1.0));
+    if max_amplitude > 0.0 {
+        let scale_factor = 1.0 / max_amplitude;
+        for sample in signal {
+            *sample *= scale_factor;
+        }
     }
 }
