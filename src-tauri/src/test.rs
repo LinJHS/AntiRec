@@ -1,81 +1,66 @@
 use std::f32::consts::PI;
-use rand::Rng;
+use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
 
-pub struct AudioProcessor {
+struct AudioBuffer {
+    samples: Vec<f32>,
     sample_rate: u32,
-    buffer_size: usize,
 }
 
-impl AudioProcessor {
-    pub fn new(sample_rate: u32, buffer_size: usize) -> Self {
-        AudioProcessor {
-            sample_rate,
-            buffer_size,
+impl AudioBuffer {
+    fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
+        AudioBuffer { samples, sample_rate }
+    }
+
+    fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
+        let duration = self.samples.len() as f32 / self.sample_rate as f32;
+        for (i, sample) in self.samples.iter_mut().enumerate() {
+            let time = i as f32 / self.sample_rate as f32;
+            let disturbance = amplitude * (2.0 * PI * frequency * time).sin();
+            *sample += disturbance;
         }
     }
 
-    pub fn process_audio(&self, input: &[f32], disturbance_level: f32) -> Vec<f32> {
-        let mut output = Vec::with_capacity(self.buffer_size);
-        let mut rng = rand::thread_rng();
+    fn process_in_parallel(&mut self, num_threads: usize) {
+        let chunk_size = self.samples.len() / num_threads;
+        let mut handles = vec![];
 
-        for &sample in input {
-            let noise = rng.gen_range(-disturbance_level..disturbance_level);
-            let processed_sample = sample + noise;
-            output.push(processed_sample.clamp(-1.0, 1.0));
+        let samples_arc = Arc::new(self.samples.split_off(0));
+
+        for i in 0..num_threads {
+            let samples_clone = Arc::clone(&samples_arc);
+            let start = i * chunk_size;
+            let end = if i == num_threads - 1 {
+                samples_clone.len()
+            } else {
+                start + chunk_size
+            };
+
+            handles.push(thread::spawn(move || {
+                let mut local_samples = samples_clone[start..end].to_vec();
+                for sample in &mut local_samples {
+                    *sample = sample.abs().sqrt();
+                }
+                local_samples
+            }));
         }
 
-        output
-    }
-
-    pub fn apply_low_pass_filter(&self, input: &[f32], cutoff_freq: f32) -> Vec<f32> {
-        let rc = 1.0 / (2.0 * PI * cutoff_freq);
-        let dt = 1.0 / self.sample_rate as f32;
-        let alpha = dt / (rc + dt);
-
-        let mut filtered_output = Vec::with_capacity(input.len());
-        let mut prev_output = 0.0;
-
-        for &sample in input {
-            let output = alpha * sample + (1.0 - alpha) * prev_output;
-            filtered_output.push(output);
-            prev_output = output;
+        let mut processed_samples = Vec::with_capacity(self.samples.len());
+        for handle in handles {
+            processed_samples.extend(handle.join().unwrap());
         }
 
-        filtered_output
-    }
-
-    pub fn optimize_buffer(&self, input: &[f32]) -> Vec<f32> {
-        input.chunks(self.buffer_size)
-            .flat_map(|chunk| chunk.iter().map(|&sample| sample.round()))
-            .collect()
+        self.samples = processed_samples;
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+fn main() {
+    let sample_rate = 44100;
+    let mut audio_buffer = AudioBuffer::new(vec![0.0; sample_rate], sample_rate);
 
-    #[test]
-    fn test_audio_processing() {
-        let processor = AudioProcessor::new(44100, 1024);
-        let input = vec![0.5, -0.3, 0.8];
-        let output = processor.process_audio(&input, 0.1);
-        assert_eq!(output.len(), input.len());
-    }
+    audio_buffer.add_disturbance(440.0, 0.1);
+    audio_buffer.process_in_parallel(4);
 
-    #[test]
-    fn test_low_pass_filter() {
-        let processor = AudioProcessor::new(44100, 1024);
-        let input = vec![0.5, -0.3, 0.8];
-        let output = processor.apply_low_pass_filter(&input, 1000.0);
-        assert_eq!(output.len(), input.len());
-    }
-
-    #[test]
-    fn test_optimize_buffer() {
-        let processor = AudioProcessor::new(44100, 1024);
-        let input = vec![0.5, -0.3, 0.8];
-        let output = processor.optimize_buffer(&input);
-        assert_eq!(output.len(), input.len());
-    }
+    println!("Audio processing complete.");
 }
