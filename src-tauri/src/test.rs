@@ -1,41 +1,55 @@
 use std::f32::consts::PI;
 
-pub struct AudioProcessor {
+#[derive(Debug)]
+struct AudioBuffer {
+    samples: Vec<f32>,
     sample_rate: u32,
-    buffer: Vec<f32>,
 }
 
-impl AudioProcessor {
-    pub fn new(sample_rate: u32) -> Self {
-        AudioProcessor {
-            sample_rate,
-            buffer: Vec::new(),
+impl AudioBuffer {
+    fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
+        AudioBuffer { samples, sample_rate }
+    }
+    
+    fn apply_disturbance(&mut self, frequency: f32, amplitude: f32) {
+        let phase_shift = 2.0 * PI * frequency / self.sample_rate as f32;
+        for (i, sample) in self.samples.iter_mut().enumerate() {
+            let disturbance = amplitude * (phase_shift * i as f32).sin();
+            *sample += disturbance;
         }
     }
 
-    pub fn process_audio(&mut self, input: &[f32]) -> Vec<f32> {
-        self.buffer.clear();
-        self.buffer.extend(input.iter().map(|&sample| {
-            let disturbed_sample = self.add_disturbance(sample);
-            self.apply_low_pass_filter(disturbed_sample)
-        }));
-        self.buffer.clone()
+    fn normalize(&mut self) {
+        let max_amplitude = self.samples.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
+        if max_amplitude > 0.0 {
+            for sample in self.samples.iter_mut() {
+                *sample /= max_amplitude;
+            }
+        }
     }
-
-    fn add_disturbance(&self, sample: f32) -> f32 {
-        let noise = (2.0 * PI * 440.0 * sample / self.sample_rate as f32).sin() * 0.1;
-        sample + noise
-    }
-
-    fn apply_low_pass_filter(&self, sample: f32) -> f32 {
-        let alpha = 0.1;
-        let mut filtered_sample = 0.0;
-        filtered_sample = alpha * sample + (1.0 - alpha) * filtered_sample;
-        filtered_sample
+    
+    fn resample(&self, new_sample_rate: u32) -> AudioBuffer {
+        let ratio = new_sample_rate as f32 / self.sample_rate as f32;
+        let new_samples: Vec<f32> = (0..(self.samples.len() as f32 * ratio) as usize)
+            .map(|i| {
+                let pos = i as f32 / ratio;
+                let prev = pos.floor() as usize;
+                let next = (prev + 1).min(self.samples.len() - 1);
+                let alpha = pos - pos.floor();
+                self.samples[prev] * (1.0 - alpha) + self.samples[next] * alpha
+            })
+            .collect();
+        AudioBuffer::new(new_samples, new_sample_rate)
     }
 }
 
-pub fn optimize_audio_processing(input: &[f32], sample_rate: u32) -> Vec<f32> {
-    let mut processor = AudioProcessor::new(sample_rate);
-    processor.process_audio(input)
+fn main() {
+    let samples = vec![0.0, 0.5, 1.0, 0.5, 0.0, -0.5, -1.0, -0.5];
+    let mut buffer = AudioBuffer::new(samples, 44100);
+    
+    buffer.apply_disturbance(1000.0, 0.1);
+    buffer.normalize();
+    
+    let resampled_buffer = buffer.resample(48000);
+    println!("{:?}", resampled_buffer);
 }
