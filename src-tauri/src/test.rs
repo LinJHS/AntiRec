@@ -14,9 +14,10 @@ impl AudioBuffer {
     }
 
     fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
+        let duration = self.samples.len() as f32 / self.sample_rate as f32;
         for (i, sample) in self.samples.iter_mut().enumerate() {
-            let t = i as f32 / self.sample_rate as f32;
-            let disturbance = amplitude * (2.0 * PI * frequency * t).sin();
+            let time = i as f32 / self.sample_rate as f32;
+            let disturbance = amplitude * (2.0 * PI * frequency * time).sin();
             *sample += disturbance;
         }
     }
@@ -46,14 +47,14 @@ impl AudioBuffer {
 
             handles.push(thread::spawn(move || {
                 let mut local_samples = samples_arc[start..end].to_vec();
-                for sample in &mut local_samples {
-                    *sample = sample.abs().sqrt();
+                for sample in local_samples.iter_mut() {
+                    *sample = sample.powf(2.0); // Example processing: square the samples
                 }
                 local_samples
             }));
         }
 
-        let mut processed_samples = Vec::with_capacity(self.samples.len());
+        let mut processed_samples = Vec::new();
         for handle in handles {
             processed_samples.extend(handle.join().unwrap());
         }
@@ -64,7 +65,7 @@ impl AudioBuffer {
 
 fn main() {
     let sample_rate = 44100;
-    let mut audio_buffer = AudioBuffer::new(vec![0.0; sample_rate], sample_rate);
+    let mut audio_buffer = AudioBuffer::new(vec![0.0; sample_rate * 2], sample_rate);
 
     audio_buffer.add_disturbance(440.0, 0.1);
     audio_buffer.normalize();
