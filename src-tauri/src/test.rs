@@ -1,75 +1,20 @@
-use std::f32::consts::PI;
+use rayon::prelude::*;
 use std::sync::Arc;
-use std::thread;
-use std::time::Duration;
-
-struct AudioBuffer {
-    samples: Vec<f32>,
-    sample_rate: u32,
-}
-
-impl AudioBuffer {
-    fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
-        AudioBuffer { samples, sample_rate }
-    }
-
-    fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
-        let duration = self.samples.len() as f32 / self.sample_rate as f32;
-        for (i, sample) in self.samples.iter_mut().enumerate() {
-            let time = i as f32 / self.sample_rate as f32;
-            let disturbance = amplitude * (2.0 * PI * frequency * time).sin();
-            *sample += disturbance;
-        }
-    }
-
-    fn normalize(&mut self) {
-        let max_amplitude = self.samples.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
-        if max_amplitude > 0.0 {
-            for sample in self.samples.iter_mut() {
-                *sample /= max_amplitude;
-            }
-        }
-    }
-
-    fn process_in_parallel(&mut self, num_threads: usize) {
-        let chunk_size = self.samples.len() / num_threads;
-        let mut handles = vec![];
-        let samples_arc = Arc::new(self.samples.clone());
-
-        for i in 0..num_threads {
-            let samples_arc = Arc::clone(&samples_arc);
-            let start = i * chunk_size;
-            let end = if i == num_threads - 1 {
-                self.samples.len()
-            } else {
-                start + chunk_size
-            };
-
-            handles.push(thread::spawn(move || {
-                let mut local_samples = samples_arc[start..end].to_vec();
-                for sample in local_samples.iter_mut() {
-                    *sample = sample.powf(2.0); // Example processing: square the samples
-                }
-                local_samples
-            }));
-        }
-
-        let mut processed_samples = Vec::new();
-        for handle in handles {
-            processed_samples.extend(handle.join().unwrap());
-        }
-
-        self.samples = processed_samples;
-    }
-}
+use std::sync::Mutex;
+use hound::{WavReader, WavWriter, SampleFormat};
 
 fn main() {
-    let sample_rate = 44100;
-    let mut audio_buffer = AudioBuffer::new(vec![0.0; sample_rate * 2], sample_rate);
+    let mut reader = WavReader::open("input.wav").unwrap();
+    let spec = reader.spec();
+    let samples: Arc<Mutex<Vec<i16>>> = Arc::new(Mutex::new(reader.samples::<i16>().map(|s| s.unwrap()).collect()));
 
-    audio_buffer.add_disturbance(440.0, 0.1);
-    audio_buffer.normalize();
-    audio_buffer.process_in_parallel(4);
+    // Parallel processing of audio samples
+    samples.par_iter_mut().for_each(|sample| {
+        // Add random disturbance to each sample
+        let disturbance = (rand::random::<i16>() >> 8) as i16;
+        *sample = sample.saturating_add(disturbance);
+    });
 
-    println!("Audio processing complete.");
+    let writer = WavWriter::create("output.wav", spec).unwrap();
+    samples.lock().unwrap().iter().for_each(|&sample| writer.write_sample(sample).unwrap());
 }
