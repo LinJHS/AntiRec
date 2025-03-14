@@ -1,91 +1,68 @@
 use std::f32::consts::PI;
-use std::sync::Arc;
-use std::thread;
-use std::time::Duration;
 
-/// Represents an audio buffer with methods for processing
-#[derive(Clone)]
-struct AudioBuffer {
+/// A struct representing an audio signal
+#[derive(Debug)]
+struct AudioSignal {
     samples: Vec<f32>,
     sample_rate: u32,
 }
 
-impl AudioBuffer {
+impl AudioSignal {
+    /// Create a new AudioSignal with given samples and sample rate
     fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
-        AudioBuffer { samples, sample_rate }
+        AudioSignal { samples, sample_rate }
     }
 
-    /// Applies a sine wave disturbance to the audio buffer
-    fn apply_disturbance(&mut self, frequency: f32, amplitude: f32) {
-        let mut phase = 0.0;
-        let phase_increment = 2.0 * PI * frequency / self.sample_rate as f32;
+    /// Add white noise to the audio signal
+    fn add_white_noise(&mut self, noise_level: f32) {
+        self.samples.iter_mut().for_each(|sample| {
+            let noise = (rand::random::<f32>() - 0.5) * noise_level;
+            *sample += noise;
+        });
+    }
 
-        for sample in &mut self.samples {
-            let disturbance = amplitude * phase.sin();
-            *sample += disturbance;
-            phase += phase_increment;
-            if phase >= 2.0 * PI {
-                phase -= 2.0 * PI;
-            }
+    /// Apply a low-pass filter to the audio signal
+    fn apply_low_pass_filter(&mut self, cutoff_freq: f32) {
+        let rc = 1.0 / (2.0 * PI * cutoff_freq);
+        let dt = 1.0 / self.sample_rate as f32;
+        let alpha = dt / (rc + dt);
+
+        let mut prev_sample = self.samples[0];
+        for sample in self.samples.iter_mut() {
+            *sample = prev_sample + alpha * (*sample - prev_sample);
+            prev_sample = *sample;
         }
     }
 
-    /// Normalizes the audio buffer to prevent clipping
+    /// Normalize the audio signal to the range [-1.0, 1.0]
     fn normalize(&mut self) {
-        let max_amplitude = self.samples.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
-        if max_amplitude > 1.0 {
-            for sample in &mut self.samples {
-                *sample /= max_amplitude;
-            }
+        let max_abs = self.samples.iter()
+                                           .map(|&x| x.abs())
+                                           .fold(0.0, |a, b| a.max(b));
+        if max_abs > 0.0 {
+            self.samples.iter_mut().for_each(|x| *x /= max_abs);
         }
-    }
-
-    /// Processes the audio buffer in parallel for improved efficiency
-    fn process_parallel(&mut self, num_threads: usize, frequency: f32, amplitude: f32) {
-        let chunk_size = self.samples.len() / num_threads;
-        let mut handles = vec![];
-
-        let arc_samples = Arc::new(self.samples.clone());
-        let mutex_samples = Arc::new(std::sync::Mutex::new(vec![0.0; self.samples.len()]));
-
-        for i in 0..num_threads {
-            let arc_samples = Arc::clone(&arc_samples);
-            let mutex_samples = Arc::clone(&mutex_samples);
-            let start = i * chunk_size;
-            let end = if i == num_threads - 1 {
-                self.samples.len()
-            } else {
-                start + chunk_size
-            };
-
-            handles.push(thread::spawn(move || {
-                let mut phase = 0.0;
-                let phase_increment = 2.0 * PI * frequency / 44100.0;
-
-                for j in start..end {
-                    let disturbance = amplitude * phase.sin();
-                    let mut guard = mutex_samples.lock().unwrap();
-                    guard[j] = arc_samples[j] + disturbance;
-                    phase += phase_increment;
-                    if phase >= 2.0 * PI {
-                        phase -= 2.0 * PI;
-                    }
-                }
-            }));
-        }
-
-        for handle in handles {
-            handle.join().unwrap();
-        }
-
-        self.samples = Arc::try_unwrap(mutex_samples).unwrap().into_inner().unwrap();
     }
 }
 
-fn main() {
-    let mut audio_buffer = AudioBuffer::new(vec![0.0; 44100], 44100);
-    audio_buffer.process_parallel(4, 440.0, 0.1);
-    audio_buffer.normalize();
+/// Generate a sine wave audio signal
+fn generate_sine_wave(freq: f32, duration: f32, sample_rate: u32) -> AudioSignal {
+    let num_samples = (duration * sample_rate as f32) as usize;
+    let mut samples = Vec::with_capacity(num_samples);
+    let phase_inc = 2.0 * PI * freq / sample_rate as f32;
 
-    println!("Audio processing complete!");
+    for i in 0..num_samples {
+        samples.push((phase_inc * i as f32).sin());
+    }
+
+    AudioSignal::new(samples, sample_rate)
+}
+
+fn main() {
+    let mut sine_wave = generate_sine_wave(440.0, 1.0, 44100);
+    sine_wave.add_white_noise(0.1);
+    sine_wave.apply_low_pass_filter(1000.0);
+    sine_wave.normalize();
+
+    println!("Processed audio signal: {:?}", sine_wave);
 }
