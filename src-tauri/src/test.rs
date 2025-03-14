@@ -1,75 +1,57 @@
 use std::f32::consts::PI;
-use std::sync::Arc;
-use std::sync::Mutex;
-use std::thread;
+use rand::Rng;
 
-struct AudioBuffer {
-    samples: Vec<f32>,
-    sample_rate: u32,
+// Generate a sine wave with a given frequency and sample rate
+fn generate_sine_wave(frequency: f32, sample_rate: f32, duration: f32) -> Vec<f32> {
+    let num_samples = (sample_rate * duration) as usize;
+    let mut wave = Vec::with_capacity(num_samples);
+    for i in 0..num_samples {
+        let t = i as f32 / sample_rate;
+        wave.push((2.0 * PI * frequency * t).sin());
+    }
+    wave
 }
 
-impl AudioBuffer {
-    fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
-        AudioBuffer { samples, sample_rate }
-    }
-
-    fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
-        let mut rng = rand::thread_rng();
-        for i in 0..self.samples.len() {
-            let t = i as f32 / self.sample_rate as f32;
-            let disturbance = amplitude * (2.0 * PI * frequency * t).sin();
-            self.samples[i] += disturbance + rng.gen_range(-amplitude * 0.1..amplitude * 0.1);
-        }
-    }
-
-    fn normalize(&mut self) {
-        let max_amplitude = self.samples.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
-        if max_amplitude > 0.0 {
-            for sample in &mut self.samples {
-                *sample /= max_amplitude;
-            }
-        }
-    }
-
-    fn process_in_parallel(&mut self, num_threads: usize, process_fn: fn(f32) -> f32) {
-        let chunk_size = self.samples.len() / num_threads;
-        let samples_arc = Arc::new(Mutex::new(&mut self.samples));
-
-        let handles: Vec<_> = (0..num_threads).map(|i| {
-            let samples_arc = Arc::clone(&samples_arc);
-            thread::spawn(move || {
-                let start = i * chunk_size;
-                let end = if i == num_threads - 1 {
-                    self.samples.len()
-                } else {
-                    start + chunk_size
-                };
-                let mut samples = samples_arc.lock().unwrap();
-                for j in start..end {
-                    samples[j] = process_fn(samples[j]);
-                }
-            })
-        }).collect();
-
-        for handle in handles {
-            handle.join().unwrap();
-        }
+// Add white noise to the audio signal
+fn add_white_noise(signal: &mut Vec<f32>, noise_level: f32) {
+    let mut rng = rand::thread_rng();
+    for sample in signal.iter_mut() {
+        let noise: f32 = rng.gen_range(-noise_level..noise_level);
+        *sample += noise;
     }
 }
 
-fn apply_compression(sample: f32) -> f32 {
-    let threshold = 0.5;
-    let ratio = 4.0;
-    if sample.abs() > threshold {
-        threshold + (sample.abs() - threshold) / ratio
-    } else {
-        sample
+// Apply a low-pass filter to the audio signal
+fn apply_low_pass_filter(signal: &mut Vec<f32>, cutoff_frequency: f32, sample_rate: f32) {
+    let rc = 1.0 / (2.0 * PI * cutoff_frequency);
+    let dt = 1.0 / sample_rate;
+    let alpha = dt / (rc + dt);
+
+    let mut prev_output = 0.0;
+    for sample in signal.iter_mut() {
+        *sample = prev_output + alpha * (*sample - prev_output);
+        prev_output = *sample;
+    }
+}
+
+// Main function to process audio
+fn process_audio() {
+    let sample_rate = 44100.0;
+    let duration = 2.0;
+    let frequency = 440.0;
+    let noise_level = 0.1;
+    let cutoff_frequency = 5000.0;
+
+    let mut audio_signal = generate_sine_wave(frequency, sample_rate, duration);
+    add_white_noise(&mut audio_signal, noise_level);
+    apply_low_pass_filter(&mut audio_signal, cutoff_frequency, sample_rate);
+
+    // Output the processed audio signal (simulated)
+    for sample in audio_signal.iter() {
+        println!("{}", sample);
     }
 }
 
 fn main() {
-    let mut audio_buffer = AudioBuffer::new(vec![0.0; 44100], 44100);
-    audio_buffer.add_disturbance(440.0, 0.1);
-    audio_buffer.process_in_parallel(4, apply_compression);
-    audio_buffer.normalize();
+    process_audio();
 }
