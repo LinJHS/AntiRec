@@ -1,60 +1,75 @@
 use std::f32::consts::PI;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::thread;
 
-pub struct AudioProcessor {
+struct AudioBuffer {
+    samples: Vec<f32>,
     sample_rate: u32,
-    buffer: Arc<Mutex<Vec<f32>>>,
 }
 
-impl AudioProcessor {
-    pub fn new(sample_rate: u32) -> Self {
-        AudioProcessor {
-            sample_rate,
-            buffer: Arc::new(Mutex::new(Vec::new())),
+impl AudioBuffer {
+    fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
+        AudioBuffer { samples, sample_rate }
+    }
+
+    fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
+        let mut rng = rand::thread_rng();
+        for i in 0..self.samples.len() {
+            let t = i as f32 / self.sample_rate as f32;
+            let disturbance = amplitude * (2.0 * PI * frequency * t).sin();
+            self.samples[i] += disturbance + rng.gen_range(-amplitude * 0.1..amplitude * 0.1);
         }
     }
 
-    pub fn process_audio(&self, input: &[f32]) -> Vec<f32> {
-        let mut output = Vec::with_capacity(input.len());
-        let mut buffer = self.buffer.lock().unwrap();
-
-        for &sample in input {
-            let processed_sample = self.add_disturbance(sample);
-            let filtered_sample = self.low_pass_filter(processed_sample, &mut buffer);
-            output.push(filtered_sample);
+    fn normalize(&mut self) {
+        let max_amplitude = self.samples.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
+        if max_amplitude > 0.0 {
+            for sample in &mut self.samples {
+                *sample /= max_amplitude;
+            }
         }
-
-        output
     }
 
-    fn add_disturbance(&self, sample: f32) -> f32 {
-        let disturbance = ((2.0 * PI * 440.0 * sample) / self.sample_rate as f32).sin() * 0.1;
-        sample + disturbance
-    }
+    fn process_in_parallel(&mut self, num_threads: usize, process_fn: fn(f32) -> f32) {
+        let chunk_size = self.samples.len() / num_threads;
+        let samples_arc = Arc::new(Mutex::new(&mut self.samples));
 
-    fn low_pass_filter(&self, sample: f32, buffer: &mut Vec<f32>) -> f32 {
-        const ALPHA: f32 = 0.1;
-        let last_sample = buffer.last().copied().unwrap_or(0.0);
-        let filtered_sample = ALPHA * sample + (1.0 - ALPHA) * last_sample;
-        buffer.push(filtered_sample);
-        filtered_sample
+        let handles: Vec<_> = (0..num_threads).map(|i| {
+            let samples_arc = Arc::clone(&samples_arc);
+            thread::spawn(move || {
+                let start = i * chunk_size;
+                let end = if i == num_threads - 1 {
+                    self.samples.len()
+                } else {
+                    start + chunk_size
+                };
+                let mut samples = samples_arc.lock().unwrap();
+                for j in start..end {
+                    samples[j] = process_fn(samples[j]);
+                }
+            })
+        }).collect();
+
+        for handle in handles {
+            handle.join().unwrap();
+        }
     }
 }
 
-pub fn optimize_buffer(buffer: &mut Vec<f32>) {
-    buffer.shrink_to_fit();
+fn apply_compression(sample: f32) -> f32 {
+    let threshold = 0.5;
+    let ratio = 4.0;
+    if sample.abs() > threshold {
+        threshold + (sample.abs() - threshold) / ratio
+    } else {
+        sample
+    }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_audio_processing() {
-        let processor = AudioProcessor::new(44100);
-        let input = vec![0.5, -0.3, 0.8, -0.1];
-        let output = processor.process_audio(&input);
-        assert_eq!(output.len(), input.len());
-    }
+fn main() {
+    let mut audio_buffer = AudioBuffer::new(vec![0.0; 44100], 44100);
+    audio_buffer.add_disturbance(440.0, 0.1);
+    audio_buffer.process_in_parallel(4, apply_compression);
+    audio_buffer.normalize();
 }
