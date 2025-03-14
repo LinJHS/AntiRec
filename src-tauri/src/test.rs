@@ -1,68 +1,52 @@
 use std::f32::consts::PI;
+use ndarray::{Array1, Array2};
+use rayon::prelude::*;
 
-/// A struct representing an audio signal
-#[derive(Debug)]
-struct AudioSignal {
-    samples: Vec<f32>,
-    sample_rate: u32,
+fn apply_disturbance(audio: &Array1<f32>, noise_level: f32) -> Array1<f32> {
+    let noise: Array1<f32> = Array1::random(audio.len(), rand::distributions::Uniform::new(-1.0, 1.0)) * noise_level;
+    audio + noise
 }
 
-impl AudioSignal {
-    /// Create a new AudioSignal with given samples and sample rate
-    fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
-        AudioSignal { samples, sample_rate }
-    }
-
-    /// Add white noise to the audio signal
-    fn add_white_noise(&mut self, noise_level: f32) {
-        self.samples.iter_mut().for_each(|sample| {
-            let noise = (rand::random::<f32>() - 0.5) * noise_level;
-            *sample += noise;
-        });
-    }
-
-    /// Apply a low-pass filter to the audio signal
-    fn apply_low_pass_filter(&mut self, cutoff_freq: f32) {
-        let rc = 1.0 / (2.0 * PI * cutoff_freq);
-        let dt = 1.0 / self.sample_rate as f32;
-        let alpha = dt / (rc + dt);
-
-        let mut prev_sample = self.samples[0];
-        for sample in self.samples.iter_mut() {
-            *sample = prev_sample + alpha * (*sample - prev_sample);
-            prev_sample = *sample;
-        }
-    }
-
-    /// Normalize the audio signal to the range [-1.0, 1.0]
-    fn normalize(&mut self) {
-        let max_abs = self.samples.iter()
-                                           .map(|&x| x.abs())
-                                           .fold(0.0, |a, b| a.max(b));
-        if max_abs > 0.0 {
-            self.samples.iter_mut().for_each(|x| *x /= max_abs);
-        }
-    }
+fn normalize_audio(audio: &Array1<f32>) -> Array1<f32> {
+    let max_amplitude = audio.fold(f32::NEG_INFINITY, |acc, &x| acc.max(x.abs()));
+    audio / max_amplitude
 }
 
-/// Generate a sine wave audio signal
-fn generate_sine_wave(freq: f32, duration: f32, sample_rate: u32) -> AudioSignal {
-    let num_samples = (duration * sample_rate as f32) as usize;
-    let mut samples = Vec::with_capacity(num_samples);
-    let phase_inc = 2.0 * PI * freq / sample_rate as f32;
-
-    for i in 0..num_samples {
-        samples.push((phase_inc * i as f32).sin());
+fn fft_transform(audio: &Array1<f32>) -> Array1<f32> {
+    let n = audio.len();
+    let mut spectrum = Array1::zeros(n);
+    for k in 0..n {
+        let mut sum_real = 0.0;
+        let mut sum_imag = 0.0;
+        for t in 0..n {
+            let angle = 2.0 * PI * (k as f32) * (t as f32) / (n as f32);
+            sum_real += audio[t] * angle.cos();
+            sum_imag -= audio[t] * angle.sin();
+        }
+        spectrum[k] = (sum_real.powi(2) + sum_imag.powi(2)).sqrt();
     }
+    spectrum
+}
 
-    AudioSignal::new(samples, sample_rate)
+fn parallel_fft(audio: &Array1<f32>) -> Array1<f32> {
+    let n = audio.len();
+    let spectrum: Vec<f32> = (0..n).into_par_iter().map(|k| {
+        let mut sum_real = 0.0;
+        let mut sum_imag = 0.0;
+        for t in 0..n {
+            let angle = 2.0 * PI * (k as f32) * (t as f32) / (n as f32);
+            sum_real += audio[t] * angle.cos();
+            sum_imag -= audio[t] * angle.sin();
+        }
+        (sum_real.powi(2) + sum_imag.powi(2)).sqrt()
+    }).collect();
+    Array1::from(spectrum)
 }
 
 fn main() {
-    let mut sine_wave = generate_sine_wave(440.0, 1.0, 44100);
-    sine_wave.add_white_noise(0.1);
-    sine_wave.apply_low_pass_filter(1000.0);
-    sine_wave.normalize();
-
-    println!("Processed audio signal: {:?}", sine_wave);
+    let audio = Array1::linspace(0.0, 1.0, 1024);
+    let disturbed_audio = apply_disturbance(&audio, 0.1);
+    let normalized_audio = normalize_audio(&disturbed_audio);
+    let spectrum = parallel_fft(&normalized_audio);
+    println!("{:?}", spectrum);
 }
