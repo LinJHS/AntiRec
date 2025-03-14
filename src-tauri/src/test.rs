@@ -1,20 +1,39 @@
-use rayon::prelude::*;
-use std::sync::Arc;
-use std::sync::Mutex;
-use hound::{WavReader, WavWriter, SampleFormat};
+use std::f32::consts::PI;
 
-fn main() {
-    let mut reader = WavReader::open("input.wav").unwrap();
-    let spec = reader.spec();
-    let samples: Arc<Mutex<Vec<i16>>> = Arc::new(Mutex::new(reader.samples::<i16>().map(|s| s.unwrap()).collect()));
+pub struct AudioProcessor {
+    sample_rate: u32,
+    disturbance_level: f32,
+}
 
-    // Parallel processing of audio samples
-    samples.par_iter_mut().for_each(|sample| {
-        // Add random disturbance to each sample
-        let disturbance = (rand::random::<i16>() >> 8) as i16;
-        *sample = sample.saturating_add(disturbance);
-    });
+impl AudioProcessor {
+    pub fn new(sample_rate: u32, disturbance_level: f32) -> Self {
+        AudioProcessor {
+            sample_rate,
+            disturbance_level,
+        }
+    }
 
-    let writer = WavWriter::create("output.wav", spec).unwrap();
-    samples.lock().unwrap().iter().for_each(|&sample| writer.write_sample(sample).unwrap());
+    pub fn process_audio(&self, input: &[f32], output: &mut [f32]) {
+        for (i, sample) in input.iter().enumerate() {
+            let disturbance = self.disturbance_level * (2.0 * PI * i as f32 / self.sample_rate as f32).sin();
+            output[i] = sample + disturbance;
+        }
+    }
+
+    pub fn apply_low_pass_filter(&self, input: &[f32], output: &mut [f32], cutoff_freq: f32) {
+        let rc = 1.0 / (2.0 * PI * cutoff_freq);
+        let dt = 1.0 / self.sample_rate as f32;
+        let alpha = dt / (rc + dt);
+
+        output[0] = input[0];
+        for i in 1..input.len() {
+            output[i] = alpha * input[i] + (1.0 - alpha) * output[i - 1];
+        }
+    }
+
+    pub fn amplify(&self, input: &[f32], output: &mut [f32], gain: f32) {
+        for (i, sample) in input.iter().enumerate() {
+            output[i] = sample * gain;
+        }
+    }
 }
