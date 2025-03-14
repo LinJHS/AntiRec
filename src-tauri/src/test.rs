@@ -1,73 +1,89 @@
 use std::f32::consts::PI;
 use std::sync::Arc;
-use std::thread;
 
-struct AudioBuffer {
-    data: Vec<f32>,
+/// Represents an audio buffer with a fixed sample rate.
+pub struct AudioBuffer {
     sample_rate: u32,
+    samples: Vec<f32>,
 }
 
 impl AudioBuffer {
-    fn new(data: Vec<f32>, sample_rate: u32) -> Self {
-        Self { data, sample_rate }
+    /// Creates a new AudioBuffer with the given sample rate and samples.
+    pub fn new(sample_rate: u32, samples: Vec<f32>) -> Self {
+        Self { sample_rate, samples }
     }
 
-    fn apply_disturbance(&mut self, frequency: f32, amplitude: f32) {
-        for i in 0..self.data.len() {
-            let t = i as f32 / self.sample_rate as f32;
-            let disturbance = amplitude * (2.0 * PI * frequency * t).sin();
-            self.data[i] += disturbance;
+    /// Applies a disturbance to the audio buffer by adding white noise.
+    pub fn add_disturbance(&mut self, noise_level: f32) {
+        let mut rng = rand::thread_rng();
+        self.samples.iter_mut().for_each(|sample| {
+            let noise: f32 = rng.gen_range(-noise_level..noise_level);
+            *sample += noise;
+        });
+    }
+
+    /// Applies a low-pass filter to the audio buffer to smooth out high-frequency noise.
+    pub fn apply_low_pass_filter(&mut self, cutoff_freq: f32) {
+        let rc = 1.0 / (2.0 * PI * cutoff_freq);
+        let dt = 1.0 / self.sample_rate as f32;
+        let alpha = dt / (rc + dt);
+
+        let mut prev_sample = 0.0;
+        for sample in &mut self.samples {
+            let filtered = prev_sample + alpha * (*sample - prev_sample);
+            prev_sample = filtered;
+            *sample = filtered;
         }
     }
 
-    fn normalize(&mut self) {
-        let max_amplitude = self.data.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
-        if max_amplitude > 0.0 {
-            let scale = 1.0 / max_amplitude;
-            for sample in &mut self.data {
-                *sample *= scale;
-            }
-        }
-    }
+    /// Resamples the audio buffer to a new sample rate.
+    pub fn resample(&self, new_sample_rate: u32) -> AudioBuffer {
+        let ratio = new_sample_rate as f32 / self.sample_rate as f32;
+        let new_len = (self.samples.len() as f32 * ratio) as usize;
+        let mut resampled = Vec::with_capacity(new_len);
 
-    fn process_in_parallel(&mut self, num_threads: usize) {
-        let chunk_size = self.data.len() / num_threads;
-        let mut handles = vec![];
-        let arc_data = Arc::new(self.data.clone());
+        for i in 0..new_len {
+            let pos = i as f32 / ratio;
+            let prev_index = pos.floor() as usize;
+            let next_index = (prev_index + 1).min(self.samples.len() - 1);
+            let weight = pos - prev_index as f32;
 
-        for i in 0..num_threads {
-            let start = i * chunk_size;
-            let end = if i == num_threads - 1 {
-                self.data.len()
-            } else {
-                start + chunk_size
-            };
-
-            let arc_data = Arc::clone(&arc_data);
-            let handle = thread::spawn(move || {
-                let mut local_data = arc_data[start..end].to_vec();
-                for sample in &mut local_data {
-                    *sample = sample.tanh(); 
-                }
-                local_data
-            });
-
-            handles.push((start, end, handle));
+            let prev_sample = self.samples[prev_index];
+            let next_sample = self.samples[next_index];
+            let interpolated = prev_sample + weight * (next_sample - prev_sample);
+            resampled.push(interpolated);
         }
 
-        for (start, end, handle) in handles {
-            self.data[start..end].copy_from_slice(&handle.join().unwrap());
-        }
+        AudioBuffer::new(new_sample_rate, resampled)
     }
 }
 
-fn main() {
-    let sample_rate = 44100;
-    let mut audio_buffer = AudioBuffer::new(vec![0.0; sample_rate * 2], sample_rate);
-
-    audio_buffer.apply_disturbance(440.0, 0.1);
-    audio_buffer.normalize();
-    audio_buffer.process_in_parallel(4);
-
-    println!("Audio Buffer: {:?}", audio_buffer.data);
+/// Represents a multi-threaded audio processor.
+pub struct AudioProcessor {
+    buffer: Arc<AudioBuffer>,
 }
+
+impl AudioProcessor {
+    pub fn new(buffer: AudioBuffer) -> Self {
+        Self {
+            buffer: Arc::new(buffer),
+        }
+    }
+
+    /// Processes the audio buffer in parallel to apply effects.
+    pub fn process_parallel(&self) -> AudioBuffer {
+        let buffer = Arc::clone(&self.buffer);
+        let mut processed = buffer.samples.clone();
+
+        // Parallelize the processing of the audio buffer
+        processed.par_iter_mut().for_each(|sample| {
+            // Example effect: Apply a simple gain reduction
+            *sample *= 0.8;
+        });
+
+        AudioBuffer::new(buffer.sample_rate, processed)
+    }
+}
+
+use rand::Rng;
+use rayon::prelude::*;
