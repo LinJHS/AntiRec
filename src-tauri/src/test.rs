@@ -1,50 +1,66 @@
 use std::f32::consts::PI;
-use ndarray::{Array1, ArrayView1};
-use rustfft::{Fft, FftDirection, num_complex::Complex};
+use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
 
-pub struct AudioProcessor {
+struct AudioBuffer {
+    samples: Vec<f32>,
     sample_rate: u32,
-    fft: Fft<f32>,
-    window_size: usize,
 }
 
-impl AudioProcessor {
-    pub fn new(sample_rate: u32, window_size: usize) -> Self {
-        let fft = Fft::new(window_size, FftDirection::Forward);
-        AudioProcessor {
-            sample_rate,
-            fft,
-            window_size,
+impl AudioBuffer {
+    fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
+        AudioBuffer { samples, sample_rate }
+    }
+
+    fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
+        let mut rng = rand::thread_rng();
+        for i in 0..self.samples.len() {
+            let t = i as f32 / self.sample_rate as f32;
+            let noise = amplitude * (2.0 * PI * frequency * t).sin();
+            self.samples[i] += noise + rng.gen_range(-0.1..0.1);
         }
     }
 
-    pub fn add_disturbance(&self, signal: &mut Array1<f32>, frequency: f32, amplitude: f32) {
-        let omega = 2.0 * PI * frequency / self.sample_rate as f32;
-        signal.iter_mut().enumerate().for_each(|(i, x)| {
-            *x += amplitude * (omega * i as f32).sin();
-        });
-    }
+    fn process_parallel(&mut self, num_threads: usize) {
+        let chunk_size = self.samples.len() / num_threads;
+        let mut handles = vec![];
 
-    pub fn apply_fft(&self, signal: ArrayView1<f32>) -> Array1<Complex<f32>> {
-        let mut buffer = signal.mapv(|x| Complex::new(x, 0.0)).into_raw_vec();
-        self.fft.process(&mut buffer);
-        Array1::from(buffer)
-    }
+        let samples_arc = Arc::new(self.samples.clone());
 
-    pub fn spectral_subtraction(&self, noisy_signal: ArrayView1<f32>, noise_spectrum: ArrayView1<f32>) -> Array1<f32> {
-        let noisy_spectrum = self.apply_fft(noisy_signal);
-        let mut cleaned_spectrum = noisy_spectrum.zip(&noise_spectrum).map(|(ns, n)| {
-            let magnitude = (ns.re * ns.re + ns.im * ns.im).sqrt();
-            let cleaned_magnitude = (magnitude - n.re).max(0.0);
-            Complex::new(cleaned_magnitude * (ns.re / magnitude), cleaned_magnitude * (ns.im / magnitude))
-        });
-        self.apply_inverse_fft(cleaned_spectrum.view())
-    }
+        for i in 0..num_threads {
+            let samples_arc = Arc::clone(&samples_arc);
+            let start = i * chunk_size;
+            let end = if i == num_threads - 1 {
+                self.samples.len()
+            } else {
+                start + chunk_size
+            };
 
-    fn apply_inverse_fft(&self, spectrum: ArrayView1<Complex<f32>>) -> Array1<f32> {
-        let mut buffer = spectrum.to_vec();
-        let ifft = Fft::new(self.window_size, FftDirection::Inverse);
-        ifft.process(&mut buffer);
-        buffer.iter().map(|c| c.re).collect()
+            handles.push(thread::spawn(move || {
+                let mut local_samples = samples_arc[start..end].to_vec();
+                for sample in &mut local_samples {
+                    *sample = sample.abs().sqrt();
+                }
+                local_samples
+            }));
+        }
+
+        let mut processed_samples = Vec::with_capacity(self.samples.len());
+        for handle in handles {
+            processed_samples.extend(handle.join().unwrap());
+        }
+
+        self.samples = processed_samples;
     }
+}
+
+fn main() {
+    let sample_rate = 44100;
+    let mut audio_buffer = AudioBuffer::new(vec![0.0; sample_rate * 2], sample_rate);
+
+    audio_buffer.add_disturbance(440.0, 0.05);
+    audio_buffer.process_parallel(4);
+
+    println!("Audio processing complete.");
 }
