@@ -1,60 +1,83 @@
 use std::f32::consts::PI;
 use std::sync::Arc;
-use rayon::prelude::*;
+use std::sync::Mutex;
+use std::thread;
 
-#[derive(Clone)]
-pub struct AudioProcessor {
+struct AudioBuffer {
+    samples: Vec<f32>,
     sample_rate: u32,
-    noise_level: f32,
 }
 
-impl AudioProcessor {
-    pub fn new(sample_rate: u32, noise_level: f32) -> Self {
-        AudioProcessor { sample_rate, noise_level }
-    }
-
-    pub fn process_audio(&self, samples: &mut [f32]) {
-        samples.par_iter_mut().for_each(|sample| {
-            *sample = self.add_disturbance(*sample);
-            *sample = self.apply_compression(*sample);
-        });
-    }
-
-    fn add_disturbance(&self, sample: f32) -> f32 {
-        let noise = rand::random::<f32>() * self.noise_level;
-        sample + (noise - self.noise_level / 2.0)
-    }
-
-    fn apply_compression(&self, sample: f32) -> f32 {
-        let threshold = 0.5;
-        let ratio = 4.0;
-        if sample.abs() > threshold {
-            threshold + (sample.abs() - threshold) / ratio
-        } else {
-            sample
+impl AudioBuffer {
+    fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
+        AudioBuffer {
+            samples,
+            sample_rate,
         }
     }
 
-    pub fn generate_sine_wave(&self, frequency: f32, duration: f32) -> Vec<f32> {
-        let num_samples = (self.sample_rate as f32 * duration) as usize;
-        let mut sine_wave = vec![0.0; num_samples];
-        for i in 0..num_samples {
-            let t = i as f32 / self.sample_rate as f32;
-            sine_wave[i] = (2.0 * PI * frequency * t).sin();
+    fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
+        let mut rng = rand::thread_rng();
+        let disturbance: Vec<f32> = (0..self.samples.len())
+            .map(|i| {
+                let t = i as f32 / self.sample_rate as f32;
+                amplitude * (2.0 * PI * frequency * t).sin() + rng.gen_range(-0.1..0.1)
+            })
+            .collect();
+
+        for (sample, dist) in self.samples.iter_mut().zip(disturbance.iter()) {
+            *sample += dist;
         }
-        sine_wave
+    }
+
+    fn process_in_parallel(&mut self, num_threads: usize, process_fn: Arc<Mutex<dyn Fn(&mut AudioBuffer) + Send>>) {
+        let chunk_size = self.samples.len() / num_threads;
+        let mut handles = vec![];
+
+        for i in 0..num_threads {
+            let start = i * chunk_size;
+            let end = if i == num_threads - 1 {
+                self.samples.len()
+            } else {
+                start + chunk_size
+            };
+
+            let mut buffer = AudioBuffer {
+                samples: self.samples[start..end].to_vec(),
+                sample_rate: self.sample_rate,
+            };
+
+            let process_fn = Arc::clone(&process_fn);
+            let handle = thread::spawn(move || {
+                let process_fn = process_fn.lock().unwrap();
+                process_fn(&mut buffer);
+                buffer
+            });
+
+            handles.push(handle);
+        }
+
+        for (i, handle) in handles.into_iter().enumerate() {
+            let processed_buffer = handle.join().unwrap();
+            let start = i * chunk_size;
+            let end = if i == num_threads - 1 {
+                self.samples.len()
+            } else {
+                start + chunk_size
+            };
+            self.samples[start..end].copy_from_slice(&processed_buffer.samples);
+        }
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+fn main() {
+    let sample_rate = 44100;
+    let samples = vec![0.0; sample_rate * 5]; // 5 seconds of silence
+    let mut audio_buffer = AudioBuffer::new(samples, sample_rate);
 
-    #[test]
-    fn test_audio_processor() {
-        let processor = AudioProcessor::new(44100, 0.1);
-        let mut samples = vec![0.5, -0.3, 0.8, -0.9];
-        processor.process_audio(&mut samples);
-        assert_ne!(samples[0], 0.5);
-    }
+    let process_fn = Arc::new(Mutex::new(|buffer: &mut AudioBuffer| {
+        buffer.add_disturbance(440.0, 0.1); // Add a 440Hz disturbance
+    }));
+
+    audio_buffer.process_in_parallel(4, process_fn);
 }
