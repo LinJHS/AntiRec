@@ -1,70 +1,60 @@
 use std::f32::consts::PI;
 use std::sync::Arc;
-use std::thread;
+use rayon::prelude::*;
 
-struct AudioBuffer {
-    samples: Vec<f32>,
+#[derive(Clone)]
+pub struct AudioProcessor {
     sample_rate: u32,
+    noise_level: f32,
 }
 
-impl AudioBuffer {
-    fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
-        AudioBuffer { samples, sample_rate }
+impl AudioProcessor {
+    pub fn new(sample_rate: u32, noise_level: f32) -> Self {
+        AudioProcessor { sample_rate, noise_level }
     }
 
-    fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
-        let mut rng = rand::thread_rng();
-        for i in 0..self.samples.len() {
+    pub fn process_audio(&self, samples: &mut [f32]) {
+        samples.par_iter_mut().for_each(|sample| {
+            *sample = self.add_disturbance(*sample);
+            *sample = self.apply_compression(*sample);
+        });
+    }
+
+    fn add_disturbance(&self, sample: f32) -> f32 {
+        let noise = rand::random::<f32>() * self.noise_level;
+        sample + (noise - self.noise_level / 2.0)
+    }
+
+    fn apply_compression(&self, sample: f32) -> f32 {
+        let threshold = 0.5;
+        let ratio = 4.0;
+        if sample.abs() > threshold {
+            threshold + (sample.abs() - threshold) / ratio
+        } else {
+            sample
+        }
+    }
+
+    pub fn generate_sine_wave(&self, frequency: f32, duration: f32) -> Vec<f32> {
+        let num_samples = (self.sample_rate as f32 * duration) as usize;
+        let mut sine_wave = vec![0.0; num_samples];
+        for i in 0..num_samples {
             let t = i as f32 / self.sample_rate as f32;
-            let noise = amplitude * (2.0 * PI * frequency * t).sin();
-            self.samples[i] += noise + rng.gen_range(-0.1..0.1);
+            sine_wave[i] = (2.0 * PI * frequency * t).sin();
         }
-    }
-
-    fn normalize(&mut self) {
-        let max_amplitude = self.samples.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
-        if max_amplitude > 0.0 {
-            for sample in &mut self.samples {
-                *sample /= max_amplitude;
-            }
-        }
-    }
-
-    fn process_in_parallel(&mut self, num_threads: usize) {
-        let chunk_size = self.samples.len() / num_threads;
-        let mut handles = vec![];
-        let samples_arc = Arc::new(self.samples.clone());
-
-        for i in 0..num_threads {
-            let samples_arc = Arc::clone(&samples_arc);
-            let start = i * chunk_size;
-            let end = if i == num_threads - 1 {
-                self.samples.len()
-            } else {
-                start + chunk_size
-            };
-
-            handles.push(thread::spawn(move || {
-                let mut local_samples = samples_arc[start..end].to_vec();
-                for sample in &mut local_samples {
-                    *sample = sample.abs().sqrt();
-                }
-                local_samples
-            }));
-        }
-
-        let mut result = Vec::with_capacity(self.samples.len());
-        for handle in handles {
-            result.extend(handle.join().unwrap());
-        }
-
-        self.samples = result;
+        sine_wave
     }
 }
 
-fn main() {
-    let mut audio_buffer = AudioBuffer::new(vec![0.0; 44100], 44100);
-    audio_buffer.add_disturbance(440.0, 0.5);
-    audio_buffer.normalize();
-    audio_buffer.process_in_parallel(4);
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_audio_processor() {
+        let processor = AudioProcessor::new(44100, 0.1);
+        let mut samples = vec![0.5, -0.3, 0.8, -0.9];
+        processor.process_audio(&mut samples);
+        assert_ne!(samples[0], 0.5);
+    }
 }
