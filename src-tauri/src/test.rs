@@ -1,60 +1,54 @@
 use std::f32::consts::PI;
+use std::sync::Arc;
+use rayon::prelude::*;
 
-// Audio processing module
-mod audio_processing {
-    pub struct AudioBuffer {
-        samples: Vec<f32>,
-        sample_rate: u32,
+pub struct AudioProcessor {
+    sample_rate: u32,
+    buffer_size: usize,
+}
+
+impl AudioProcessor {
+    pub fn new(sample_rate: u32, buffer_size: usize) -> Self {
+        AudioProcessor { sample_rate, buffer_size }
     }
 
-    impl AudioBuffer {
-        pub fn new(samples: Vec<f32>, sample_rate: u32) -> Self {
-            AudioBuffer { samples, sample_rate }
+    pub fn process_buffer(&self, buffer: &mut [f32]) {
+        buffer.par_iter_mut().for_each(|sample| {
+            *sample = self.add_disturbance(*sample);
+        });
+    }
+
+    fn add_disturbance(&self, sample: f32) -> f32 {
+        let noise = (2.0 * PI * rand::random::<f32>()).sin() * 0.1;
+        sample + noise
+    }
+
+    pub fn apply_low_pass_filter(&self, buffer: &mut [f32], cutoff_frequency: f32) {
+        let rc = 1.0 / (2.0 * PI * cutoff_frequency);
+        let dt = 1.0 / self.sample_rate as f32;
+        let alpha = dt / (rc + dt);
+
+        let mut prev_sample = 0.0;
+        for sample in buffer.iter_mut() {
+            *sample = prev_sample + alpha * (*sample - prev_sample);
+            prev_sample = *sample;
         }
+    }
 
-        pub fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
-            for (i, sample) in self.samples.iter_mut().enumerate() {
-                let t = i as f32 / self.sample_rate as f32;
-                *sample += amplitude * (2.0 * PI * frequency * t).sin();
-            }
-        }
+    pub fn normalize_buffer(&self, buffer: &mut [f32]) {
+        let max_amplitude = buffer.iter()
+            .fold(0.0, |acc, &x| acc.max(x.abs()));
 
-        pub fn apply_low_pass_filter(&mut self, cutoff_frequency: f32) {
-            let rc = 1.0 / (2.0 * PI * cutoff_frequency);
-            let dt = 1.0 / self.sample_rate as f32;
-            let alpha = dt / (rc + dt);
-
-            let mut prev_output = 0.0;
-            for sample in &mut self.samples {
-                let output = prev_output + alpha * (*sample - prev_output);
-                prev_output = output;
-                *sample = output;
-            }
-        }
-
-        pub fn normalize(&mut self) {
-            let max_amplitude = self.samples.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
-            if max_amplitude > 0.0 {
-                for sample in &mut self.samples {
-                    *sample /= max_amplitude;
-                }
-            }
+        if max_amplitude > 0.0 {
+            buffer.par_iter_mut().for_each(|sample| {
+                *sample /= max_amplitude;
+            });
         }
     }
 }
 
-// Efficient audio processing pipeline
-fn process_audio(samples: Vec<f32>, sample_rate: u32) -> Vec<f32> {
-    let mut buffer = audio_processing::AudioBuffer::new(samples, sample_rate);
-    buffer.add_disturbance(50.0, 0.1); // Add 50Hz disturbance
-    buffer.apply_low_pass_filter(1000.0); // Apply low-pass filter
-    buffer.normalize(); // Normalize audio
-    buffer.samples
-}
-
-fn main() {
-    let samples = vec![0.0, 0.5, 1.0, -1.0, 0.0];
-    let sample_rate = 44100;
-    let processed_samples = process_audio(samples, sample_rate);
-    println!("Processed Samples: {:?}", processed_samples);
+pub fn process_audio(buffer: &mut [f32], sample_rate: u32) -> Arc<AudioProcessor> {
+    let processor = Arc::new(AudioProcessor::new(sample_rate, buffer.len()));
+    processor.process_buffer(buffer);
+    processor
 }
