@@ -1,62 +1,49 @@
+use std::collections::VecDeque;
 use std::f32::consts::PI;
-use rayon::prelude::*;
 
-#[derive(Debug)]
-struct AudioBuffer {
-    sample_rate: u32,
-    data: Vec<f32>,
+const SAMPLE_RATE: u32 = 44100;
+const BUFFER_SIZE: usize = 1024;
+
+pub struct AudioProcessor {
+    buffer: VecDeque<f32>,
+    disturbance_level: f32,
 }
 
-impl AudioBuffer {
-    fn new(sample_rate: u32, data: Vec<f32>) -> Self {
-        Self { sample_rate, data }
-    }
-
-    fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
-        self.data.par_iter_mut().enumerate().for_each(|(i, sample)| {
-            let time = i as f32 / self.sample_rate as f32;
-            let disturbance = amplitude * (2.0 * PI * frequency * time).sin();
-            *sample += disturbance;
-        });
-    }
-
-    fn normalize(&mut self) {
-        let max_amplitude = self.data.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
-        if max_amplitude > 0.0 {
-            self.data.par_iter_mut().for_each(|sample| {
-                *sample /= max_amplitude;
-            });
+impl AudioProcessor {
+    pub fn new(disturbance_level: f32) -> Self {
+        Self {
+            buffer: VecDeque::with_capacity(BUFFER_SIZE),
+            disturbance_level,
         }
     }
 
-    fn apply_high_pass_filter(&mut self, cutoff_frequency: f32) {
-        let rc = 1.0 / (2.0 * PI * cutoff_frequency);
-        let dt = 1.0 / self.sample_rate as f32;
-        let alpha = rc / (rc + dt);
+    pub fn process_audio(&mut self, input: &[f32]) -> Vec<f32> {
+        let mut output = Vec::with_capacity(input.len());
 
-        let mut prev_sample = self.data[0];
-        self.data[0] = 0.0;
-
-        for i in 1..self.data.len() {
-            let current_sample = self.data[i];
-            self.data[i] = alpha * (prev_sample + self.data[i] - current_sample);
-            prev_sample = current_sample;
+        for &sample in input {
+            let disturbed_sample = self.apply_disturbance(sample);
+            self.buffer.push_back(disturbed_sample);
+            if self.buffer.len() >= BUFFER_SIZE {
+                let processed_sample = self.process_buffer();
+                output.push(processed_sample);
+                self.buffer.pop_front();
+            }
         }
+
+        output
     }
 
-    fn rms(&self) -> f32 {
-        let sum_squares: f32 = self.data.par_iter().map(|x| x * x).sum();
-        (sum_squares / self.data.len() as f32).sqrt()
+    fn apply_disturbance(&self, sample: f32) -> f32 {
+        let noise = (2.0 * PI * self.disturbance_level * sample).sin();
+        sample + noise
+    }
+
+    fn process_buffer(&self) -> f32 {
+        self.buffer.iter().sum::<f32>() / self.buffer.len() as f32
     }
 }
 
-fn main() {
-    let sample_rate = 44100;
-    let mut audio_buffer = AudioBuffer::new(sample_rate, vec![0.0; sample_rate]);
-
-    audio_buffer.add_disturbance(1000.0, 0.1);
-    audio_buffer.apply_high_pass_filter(500.0);
-    audio_buffer.normalize();
-
-    println!("RMS: {}", audio_buffer.rms());
+pub fn process_audio_stream(input: &[f32], disturbance_level: f32) -> Vec<f32> {
+    let mut processor = AudioProcessor::new(disturbance_level);
+    processor.process_audio(input)
 }
