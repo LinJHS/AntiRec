@@ -1,38 +1,50 @@
 use std::f32::consts::PI;
+use std::sync::Arc;
+use std::thread;
 
-/// Applies a low-pass filter to the audio signal to reduce high-frequency noise.
-pub fn low_pass_filter(signal: &mut [f32], cutoff_freq: f32, sample_rate: f32) {
-    let rc = 1.0 / (2.0 * PI * cutoff_freq);
-    let dt = 1.0 / sample_rate;
-    let alpha = dt / (rc + dt);
-
-    for i in 1..signal.len() {
-        signal[i] = signal[i - 1] + alpha * (signal[i] - signal[i - 1]);
-    }
+struct AudioBuffer {
+    data: Vec<f32>,
+    sample_rate: u32,
 }
 
-/// Adds white noise to the audio signal with a specified amplitude.
-pub fn add_white_noise(signal: &mut [f32], noise_amplitude: f32) {
-    for sample in signal.iter_mut() {
-        let noise: f32 = (rand::random::<f32>() * 2.0 - 1.0) * noise_amplitude;
-        *sample += noise;
+impl AudioBuffer {
+    fn new(data: Vec<f32>, sample_rate: u32) -> Self {
+        AudioBuffer { data, sample_rate }
     }
-}
 
-/// Efficiently normalizes the audio signal to the range [-1.0, 1.0].
-pub fn normalize_signal(signal: &mut [f32]) {
-    let max_amplitude = signal.iter().fold(0.0, |acc, &x| acc.max(x.abs()));
-    if max_amplitude > 0.0 {
-        let scale = 1.0 / max_amplitude;
-        for sample in signal.iter_mut() {
-            *sample *= scale;
+    fn add_disturbance(&mut self, frequency: f32, amplitude: f32) {
+        let phase_step = 2.0 * PI * frequency / self.sample_rate as f32;
+        for (i, sample) in self.data.iter_mut().enumerate() {
+            let phase = phase_step * i as f32;
+            *sample += amplitude * phase.sin();
         }
     }
+
+    fn process_in_parallel(&mut self, chunk_size: usize) {
+        let mut handles = vec![];
+        let data_arc = Arc::new(self.data.clone());
+
+        for chunk in data_arc.chunks(chunk_size) {
+            let chunk = chunk.to_vec();
+            let handle = thread::spawn(move || {
+                chunk.into_iter().map(|sample| sample * 0.5).collect::<Vec<f32>>()
+            });
+            handles.push(handle);
+        }
+
+        let mut processed_data = vec![];
+        for handle in handles {
+            processed_data.extend(handle.join().unwrap());
+        }
+
+        self.data = processed_data;
+    }
 }
 
-/// Processes the audio signal with a combination of filtering, noise addition, and normalization.
-pub fn process_audio_signal(signal: &mut [f32], cutoff_freq: f32, sample_rate: f32, noise_amplitude: f32) {
-    low_pass_filter(signal, cutoff_freq, sample_rate);
-    add_white_noise(signal, noise_amplitude);
-    normalize_signal(signal);
+fn main() {
+    let mut audio_buffer = AudioBuffer::new(vec![0.0; 44100], 44100);
+    audio_buffer.add_disturbance(440.0, 0.1);
+    audio_buffer.process_in_parallel(4410);
+
+    println!("Audio processing complete!");
 }
