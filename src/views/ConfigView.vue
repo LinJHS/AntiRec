@@ -119,58 +119,80 @@ h1 {
 }
 
 .form-item {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 label {
-  display: block;
+  display: flex;
+  align-items: center;
   color: #e96864;
   margin-bottom: 8px;
   font-size: 1rem;
+  cursor: pointer;
 }
 
+/* 优化输入框样式 */
 input[type="text"],
 input[type="password"],
 input {
   width: 100%;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #ec8c8933;
-  background: rgba(255, 255, 255, 0.3);
+  padding: 12px 15px;
+  border-radius: 10px;
+  border: 1px solid #ec8c8966;
+  background: rgba(255, 255, 255, 0.5);
   color: #e96864;
+  font-size: 0.95rem;
   transition: all 0.3s ease;
 }
 
-input:focus {
-  outline: none;
-  border-color: #ec8c8955;
-  box-shadow: 0 0 10px #ec8c8922;
-}
-
+/* 优化多选框样式 */
 input[type="checkbox"] {
-  width: auto;
-  margin-right: 8px;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ec8c8966;
+  border-radius: 4px;
+  margin-right: 10px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
+input[type="checkbox"]:checked {
+  background-color: #e96864;
+  border-color: #e96864;
+}
+
+input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  color: white;
+  font-size: 12px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* 优化按钮样式 */
 button {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #ec8c8922, #ec8c8911);
-  color: #e96864;
-  border: 1px solid #ec8c8933;
+  background: linear-gradient(135deg, #ec8c8966, #e9686466);
+  color: white;
+  border: none;
   font-size: 1.1rem;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
+  margin-top: 10px;
 }
 
 button:hover {
   transform: translateY(-2px);
-  background: linear-gradient(135deg, #ec8c8933, #ec8c8922);
-  box-shadow: 0 4px 20px #ec8c8922;
-  color: #ec8c89;
-  border-color: #ec8c8955;
+  background: linear-gradient(135deg, #ec8c8988, #e9686488);
+  box-shadow: 0 4px 15px rgba(233, 104, 100, 0.3);
 }
 
 .border-item {
