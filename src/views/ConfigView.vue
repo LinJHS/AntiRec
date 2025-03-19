@@ -113,36 +113,44 @@ onMounted(() => {
 h1 {
   text-align: center;
   color: #e96864;
-  font-size: 1.5rem;
+  font-size: 24px;
   margin-bottom: 25px;
   font-weight: bold;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ec8c8933;
 }
 
 .form-item {
-  margin-bottom: 25px;
+  margin-bottom: 20px;
+  position: relative;
 }
 
 label {
   display: flex;
   align-items: center;
   color: #e96864;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   font-size: 1rem;
   cursor: pointer;
 }
 
-/* 优化输入框样式 */
 input[type="text"],
 input[type="password"],
 input {
   width: 100%;
   padding: 12px 15px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid #ec8c8966;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.3);
   color: #e96864;
   font-size: 0.95rem;
   transition: all 0.3s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: #ec8c8988;
+  box-shadow: 0 0 15px rgba(233, 104, 100, 0.1);
 }
 
 /* 优化多选框样式 */
@@ -157,6 +165,7 @@ input[type="checkbox"] {
   position: relative;
   cursor: pointer;
   transition: all 0.2s ease;
+  padding: 0;
 }
 
 input[type="checkbox"]:checked {
@@ -174,7 +183,6 @@ input[type="checkbox"]:checked::after {
   transform: translate(-50%, -50%);
 }
 
-/* 优化按钮样式 */
 button {
   width: 100%;
   padding: 12px;
@@ -186,7 +194,7 @@ button {
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-top: 10px;
+  margin-top: 25px;
 }
 
 button:hover {
@@ -197,9 +205,9 @@ button:hover {
 
 .border-item {
   position: absolute;
-  border: 3px solid #ec8c8933;
-  width: 15px;
-  height: 15px;
+  border: 2px solid #ec8c8933;
+  width: 10px;
+  height: 10px;
 }
 
 .left_top {
