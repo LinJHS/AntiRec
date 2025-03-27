@@ -40,7 +40,7 @@ const startProtect = async () => {
   }
 }
 
-var listenFromBackend;
+let listenFromBackend;
 const canvasOriRef = ref();
 const canvasNewRef = ref();
 
