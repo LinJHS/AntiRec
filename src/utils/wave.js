@@ -5,7 +5,7 @@
  * adapted to run within the Tauri project.
  */
 
-var formats = {
+let formats = {
   0x0001: "lpcm",
   0x0003: "lpcm",
 };
@@ -17,8 +17,8 @@ function waveDecoder(buffer, opts) {
   //   if (ArrayBuffer && buffer instanceof ArrayBuffer) {
   //   }
 
-  var dataView = new DataView(buffer);
-  var reader = createReader(dataView);
+  let dataView = new DataView(buffer);
+  let reader = createReader(dataView);
 
   if (reader.string(4) !== "RIFF") {
     throw new TypeError("Invalid WAV file");
@@ -30,12 +30,12 @@ function waveDecoder(buffer, opts) {
     throw new TypeError("Invalid WAV file");
   }
 
-  var format = null;
-  var audioData = null;
+  let format = null;
+  let audioData = null;
 
   do {
-    var chunkType = reader.string(4);
-    var chunkSize = reader.uint32();
+    let chunkType = reader.string(4);
+    let chunkSize = reader.uint32();
 
     switch (chunkType) {
       case "fmt ":
@@ -61,7 +61,7 @@ function waveDecoder(buffer, opts) {
 
 // 解码格式
 function decodeFormat(reader, chunkSize) {
-  var formatId = reader.uint16();
+  let formatId = reader.uint16();
 
   if (!formats.hasOwnProperty(formatId)) {
     return new TypeError(
@@ -69,7 +69,7 @@ function decodeFormat(reader, chunkSize) {
     );
   }
 
-  var format = {
+  let format = {
     formatId: formatId,
     floatingPoint: formatId === 0x0003,
     numberOfChannels: reader.uint16(),
@@ -86,17 +86,17 @@ function decodeFormat(reader, chunkSize) {
 function decodeData(reader, chunkSize, format, opts) {
   chunkSize = Math.min(chunkSize, reader.remain());
 
-  var length = Math.floor(chunkSize / format.blockSize);
-  var numberOfChannels = format.numberOfChannels;
-  var sampleRate = format.sampleRate;
-  var channelData = new Array(numberOfChannels);
+  let length = Math.floor(chunkSize / format.blockSize);
+  let numberOfChannels = format.numberOfChannels;
+  let sampleRate = format.sampleRate;
+  let channelData = new Array(numberOfChannels);
 
-  for (var ch = 0; ch < numberOfChannels; ch++) {
+  for (let ch = 0; ch < numberOfChannels; ch++) {
     channelData[ch] = new Float32Array(length);
     // channelData[ch] = new Uint8Array(length);
   }
 
-  var retVal = readPCM(reader, channelData, length, format, opts);
+  let retVal = readPCM(reader, channelData, length, format, opts);
 
   if (retVal instanceof Error) {
     return retVal;
@@ -112,19 +112,19 @@ function decodeData(reader, chunkSize, format, opts) {
 
 // 读取 PCM 格式代码
 function readPCM(reader, channelData, length, format, opts) {
-  var bitDepth = format.bitDepth;
-  var decoderOption = format.floatingPoint ? "f" : opts.symmetric ? "s" : "";
-  var methodName = "pcm" + bitDepth + decoderOption;
+  let bitDepth = format.bitDepth;
+  let decoderOption = format.floatingPoint ? "f" : opts.symmetric ? "s" : "";
+  let methodName = "pcm" + bitDepth + decoderOption;
 
   if (!reader[methodName]) {
     return new TypeError("Not supported bit depth: " + format.bitDepth);
   }
 
-  var read = reader[methodName].bind(reader);
-  var numberOfChannels = format.numberOfChannels;
+  let read = reader[methodName].bind(reader);
+  let numberOfChannels = format.numberOfChannels;
 
-  for (var i = 0; i < length; i++) {
-    for (var ch = 0; ch < numberOfChannels; ch++) {
+  for (let i = 0; i < length; i++) {
+    for (let ch = 0; ch < numberOfChannels; ch++) {
       channelData[ch][i] = read();
     }
   }
@@ -134,7 +134,7 @@ function readPCM(reader, channelData, length, format, opts) {
 
 // 创建 reader
 function createReader(dataView) {
-  var pos = 0;
+  let pos = 0;
 
   return {
     remain: function () {
@@ -144,115 +144,115 @@ function createReader(dataView) {
       pos += n;
     },
     uint8: function () {
-      var data = dataView.getUint8(pos, true);
+      let data = dataView.getUint8(pos, true);
 
       pos += 1;
 
       return data;
     },
     int16: function () {
-      var data = dataView.getInt16(pos, true);
+      let data = dataView.getInt16(pos, true);
 
       pos += 2;
 
       return data;
     },
     uint16: function () {
-      var data = dataView.getUint16(pos, true);
+      let data = dataView.getUint16(pos, true);
 
       pos += 2;
 
       return data;
     },
     uint32: function () {
-      var data = dataView.getUint32(pos, true);
+      let data = dataView.getUint32(pos, true);
 
       pos += 4;
 
       return data;
     },
     string: function (n) {
-      var data = "";
+      let data = "";
 
-      for (var i = 0; i < n; i++) {
+      for (let i = 0; i < n; i++) {
         data += String.fromCharCode(this.uint8());
       }
 
       return data;
     },
     pcm8: function () {
-      var data = dataView.getUint8(pos) - 128;
+      let data = dataView.getUint8(pos) - 128;
 
       pos += 1;
 
       return data < 0 ? data / 128 : data / 127;
     },
     pcm8s: function () {
-      var data = dataView.getUint8(pos) - 127.5;
+      let data = dataView.getUint8(pos) - 127.5;
 
       pos += 1;
 
       return data / 127.5;
     },
     pcm16: function () {
-      var data = dataView.getInt16(pos, true);
+      let data = dataView.getInt16(pos, true);
 
       pos += 2;
 
       return data < 0 ? data / 32768 : data / 32767;
     },
     pcm16s: function () {
-      var data = dataView.getInt16(pos, true);
+      let data = dataView.getInt16(pos, true);
 
       pos += 2;
 
       return data / 32768;
     },
     pcm24: function () {
-      var x0 = dataView.getUint8(pos + 0);
-      var x1 = dataView.getUint8(pos + 1);
-      var x2 = dataView.getUint8(pos + 2);
-      var xx = x0 + (x1 << 8) + (x2 << 16);
-      var data = xx > 0x800000 ? xx - 0x1000000 : xx;
+      let x0 = dataView.getUint8(pos + 0);
+      let x1 = dataView.getUint8(pos + 1);
+      let x2 = dataView.getUint8(pos + 2);
+      let xx = x0 + (x1 << 8) + (x2 << 16);
+      let data = xx > 0x800000 ? xx - 0x1000000 : xx;
 
       pos += 3;
 
       return data < 0 ? data / 8388608 : data / 8388607;
     },
     pcm24s: function () {
-      var x0 = dataView.getUint8(pos + 0);
-      var x1 = dataView.getUint8(pos + 1);
-      var x2 = dataView.getUint8(pos + 2);
-      var xx = x0 + (x1 << 8) + (x2 << 16);
-      var data = xx > 0x800000 ? xx - 0x1000000 : xx;
+      let x0 = dataView.getUint8(pos + 0);
+      let x1 = dataView.getUint8(pos + 1);
+      let x2 = dataView.getUint8(pos + 2);
+      let xx = x0 + (x1 << 8) + (x2 << 16);
+      let data = xx > 0x800000 ? xx - 0x1000000 : xx;
 
       pos += 3;
 
       return data / 8388608;
     },
     pcm32: function () {
-      var data = dataView.getInt32(pos, true);
+      let data = dataView.getInt32(pos, true);
 
       pos += 4;
 
       return data < 0 ? data / 2147483648 : data / 2147483647;
     },
     pcm32s: function () {
-      var data = dataView.getInt32(pos, true);
+      let data = dataView.getInt32(pos, true);
 
       pos += 4;
 
       return data / 2147483648;
     },
     pcm32f: function () {
-      var data = dataView.getFloat32(pos, true);
+      let data = dataView.getFloat32(pos, true);
 
       pos += 4;
 
       return data;
     },
     pcm64f: function () {
-      var data = dataView.getFloat64(pos, true);
+      let data = dataView.getFloat64(pos, true);
 
       pos += 8;
 
@@ -270,14 +270,14 @@ function waveEncoder(audioData, opts) {
     throw new TypeError("Invalid AudioData");
   }
 
-  var floatingPoint = !!(opts.floatingPoint || opts.float);
-  var bitDepth = floatingPoint ? 32 : opts.bitDepth | 0 || 16;
-  var bytes = bitDepth >> 3;
-  var length = audioData.length * audioData.numberOfChannels * bytes;
-  var dataView = new DataView(new Uint8Array(44 + length).buffer);
-  var writer = createWriter(dataView);
+  let floatingPoint = !!(opts.floatingPoint || opts.float);
+  let bitDepth = floatingPoint ? 32 : opts.bitDepth | 0 || 16;
+  let bytes = bitDepth >> 3;
+  let length = audioData.length * audioData.numberOfChannels * bytes;
+  let dataView = new DataView(new Uint8Array(44 + length).buffer);
+  let writer = createWriter(dataView);
 
-  var format = {
+  let format = {
     formatId: floatingPoint ? 0x0003 : 0x0001,
     floatingPoint: floatingPoint,
     numberOfChannels: audioData.numberOfChannels,
@@ -287,7 +287,7 @@ function waveEncoder(audioData, opts) {
 
   writeHeader(writer, format, dataView.buffer.byteLength - 8);
 
-  var err = writeData(writer, format, length, audioData, opts);
+  let err = writeData(writer, format, length, audioData, opts);
 
   if (err instanceof Error) {
     throw err;
@@ -297,7 +297,7 @@ function waveEncoder(audioData, opts) {
 }
 
 function toAudioData(data) {
-  var audioData = {};
+  let audioData = {};
 
   if (typeof data.sampleRate !== "number") {
     return null;
@@ -318,7 +318,7 @@ function toAudioData(data) {
 }
 
 function writeHeader(writer, format, length) {
-  var bytes = format.bitDepth >> 3;
+  let bytes = format.bitDepth >> 3;
 
   writer.string("RIFF");
   writer.uint32(length);
@@ -335,30 +335,30 @@ function writeHeader(writer, format, length) {
 }
 
 function writeData(writer, format, length, audioData, opts) {
-  var bitDepth = format.bitDepth;
-  var encoderOption = format.floatingPoint ? "f" : opts.symmetric ? "s" : "";
-  var methodName = "pcm" + bitDepth + encoderOption;
+  let bitDepth = format.bitDepth;
+  let encoderOption = format.floatingPoint ? "f" : opts.symmetric ? "s" : "";
+  let methodName = "pcm" + bitDepth + encoderOption;
 
   if (!writer[methodName]) {
     return new TypeError("Not supported bit depth: " + bitDepth);
   }
 
-  var write = writer[methodName].bind(writer);
-  var numberOfChannels = format.numberOfChannels;
-  var channelData = audioData.channelData;
+  let write = writer[methodName].bind(writer);
+  let numberOfChannels = format.numberOfChannels;
+  let channelData = audioData.channelData;
 
   writer.string("data");
   writer.uint32(length);
 
-  for (var i = 0, imax = audioData.length; i < imax; i++) {
-    for (var ch = 0; ch < numberOfChannels; ch++) {
+  for (let i = 0, imax = audioData.length; i < imax; i++) {
+    for (let ch = 0; ch < numberOfChannels; ch++) {
       write(channelData[ch][i]);
     }
   }
 }
 
 function createWriter(dataView) {
-  var pos = 0;
+  let pos = 0;
 
   return {
     int16: function (value) {
@@ -374,7 +374,7 @@ function createWriter(dataView) {
       pos += 4;
     },
     string: function (value) {
-      for (var i = 0, imax = value.length; i < imax; i++) {
+      for (let i = 0, imax = value.length; i < imax; i++) {
         dataView.setUint8(pos++, value.charCodeAt(i));
       }
     },
@@ -409,9 +409,9 @@ function createWriter(dataView) {
       value = value < 0 ? 0x1000000 + value * 8388608 : value * 8388607;
       value = Math.round(value) | 0;
 
-      var x0 = (value >> 0) & 0xff;
-      var x1 = (value >> 8) & 0xff;
-      var x2 = (value >> 16) & 0xff;
+      let x0 = (value >> 0) & 0xff;
+      let x1 = (value >> 8) & 0xff;
+      let x2 = (value >> 16) & 0xff;
 
       dataView.setUint8(pos + 0, x0);
       dataView.setUint8(pos + 1, x1);
@@ -422,9 +422,9 @@ function createWriter(dataView) {
       value = Math.round(value * 8388608);
       value = Math.max(-8388608, Math.min(value, 8388607));
 
-      var x0 = (value >> 0) & 0xff;
-      var x1 = (value >> 8) & 0xff;
-      var x2 = (value >> 16) & 0xff;
+      let x0 = (value >> 0) & 0xff;
+      let x1 = (value >> 8) & 0xff;
+      let x2 = (value >> 16) & 0xff;
 
       dataView.setUint8(pos + 0, x0);
       dataView.setUint8(pos + 1, x1);
