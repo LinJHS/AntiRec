@@ -5,13 +5,13 @@ import axios from "axios";
 
 const baseURL = import.meta.env.VITE_BASE_URL + "/api/login";
 const timeout = 10000;
-var headers = {
+let headers = {
   "Access-Control-Allow-Origin": "*",
   "Content-Type": "application/json",
 };
 
 // 创建 Axios 实例
-var request = axios.create({
+let request = axios.create({
   baseURL: baseURL,
   timeout: timeout,
   headers: headers,

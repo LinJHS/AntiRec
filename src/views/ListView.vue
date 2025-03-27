@@ -135,7 +135,7 @@ const xfIAT = async (waveFilepath, resultFilepath, resultDisplay) => {
       // console.log(waveDecodeData)
 
       const { sampleRate, channelData } = waveDecodeData;
-      var newChannelData = new Array(1);
+      let newChannelData = new Array(1);
       newChannelData[0] = new Float32Array(channelData[0].length);
 
       for (let i = 0; i < channelData[0].length; i++) {
