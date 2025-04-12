@@ -55,14 +55,14 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, _from) => {
-  if (to.meta.requiresAuth) {
-    if (localStorage.getItem("Token") === null) {
-      return {
-        path: "/login",
-      };
-    }
-  }
-});
+// router.beforeEach((to, _from) => {
+//   if (to.meta.requiresAuth) {
+//     if (localStorage.getItem("Token") === null) {
+//       return {
+//         path: "/login",
+//       };
+//     }
+//   }
+// });
 
 export default router;
