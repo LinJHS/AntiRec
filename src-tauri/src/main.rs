@@ -56,9 +56,16 @@ fn audio_process(add_values: Vec<f32>, window: Window) -> () {
 
         let output_device_list = host.output_devices().unwrap();
 
+        let mut has_found_output_device = false;
         for device in output_device_list {
-            if device.name().unwrap() == "Line 1 (Virtual Audio Cable)" {
+            if device.name().unwrap() == "CABLE Input (VB-Audio Virtual Cable)" {
+                // 这个设备的优先级更高，因此不用判断是否已经找到输出设备
                 output_device = device;
+                has_found_output_device = true;
+            }
+            else if device.name().unwrap() == "Line 1 (Virtual Audio Cable)" && !has_found_output_device {
+                output_device = device;
+                has_found_output_device = true;
             }
         }
 
