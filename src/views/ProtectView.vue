@@ -40,7 +40,7 @@ const startProtect = async () => {
   }
 }
 
-let listenFromBackend;
+var listenFromBackend;
 const canvasOriRef = ref();
 const canvasNewRef = ref();
 
@@ -91,7 +91,7 @@ const btnReturn = () => {
   <div class="container">
     <div class="wave-box">
       <div class="wave-container">
-        <div class="wave-title">原始音频波形</div>
+        <div class="wave-title">{{ $t('protect.ori') }}</div>
         <div class="wave-display">
           <canvas ref="canvasOriRef"></canvas>
           <div class="border-item left_top"></div>
@@ -101,7 +101,7 @@ const btnReturn = () => {
         </div>
       </div>
       <div class="wave-container">
-        <div class="wave-title">防护后音频波形</div>
+        <div class="wave-title">{{ $t('protect.new') }}</div>
         <div class="wave-display">
           <canvas ref="canvasNewRef"></canvas>
           <div class="border-item left_top"></div>
@@ -116,8 +116,7 @@ const btnReturn = () => {
         <path fill="currentColor"
           d="M236 112a68.07 68.07 0 0 1-68 68H61l27.52 27.51a12 12 0 0 1-17 17l-48-48a12 12 0 0 1 0-17l48-48a12 12 0 1 1 17 17L61 156h107a44 44 0 0 0 0-88H80a12 12 0 0 1 0-24h88a68.07 68.07 0 0 1 68 68Z" />
       </svg>
-      返回
-    </div>
+      {{ $t('return') }} </div>
   </div>
 </template>
 
